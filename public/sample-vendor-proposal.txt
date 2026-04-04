@@ -1,0 +1,123 @@
+VENDOR PROPOSAL SUBMISSION
+Cloud Infrastructure Services — RFT Reference: DDS-2025-042
+Submitted to: Department of Digital Services
+
+========================================================
+SECTION A: COMPANY INFORMATION
+========================================================
+
+Company Name: Nimbus Cloud Solutions Ltd.
+Registration Number: NCS-2017-08841
+Country: United Kingdom
+Registered Address: 14 Harbour Exchange Square, London, E14 9GE, United Kingdom
+Tax ID / VAT Number: GB-498-2341-09
+
+Contact Person: Alexandra Petrov (Head of Public Sector Sales)
+Email: a.petrov@nimbuscloud.co.uk
+Phone: +44 20 7946 0831
+
+========================================================
+SECTION B: COMMERCIAL PROPOSAL
+========================================================
+
+Total Contract Price: USD 285,000
+Payment Terms: Net-30 from invoice date; milestone-based billing aligned to delivery schedule
+Discount Terms: 5% early payment discount if settled within 10 business days
+Offer Validity: 90 days from submission date
+
+Price Breakdown:
+  - Cloud infrastructure setup and migration:   USD 95,000
+  - Year 1 managed services (12 months):        USD 120,000
+  - CDN and security layer configuration:       USD 35,000
+  - Training and documentation:                 USD 20,000
+  - Contingency (5%):                           USD 15,000
+
+========================================================
+SECTION C: DELIVERY AND TIMELINE
+========================================================
+
+Proposed Delivery Timeline: 60 days from contract signature to full production go-live
+
+Milestone Schedule:
+  Week 1-2:   Environment provisioning and access configuration
+  Week 3-4:   Data migration and security hardening
+  Week 5-6:   Integration testing and UAT
+  Week 7-8:   Performance tuning and go-live
+  Post-live:  30-day hypercare support included
+
+========================================================
+SECTION D: COMPANY EXPERIENCE AND TRACK RECORD
+========================================================
+
+Years in Business: 8 years (founded 2017)
+
+Similar Projects Completed: 12 government and public-sector cloud infrastructure deployments in the past 4 years, including:
+  - National Health Service digital infrastructure migration (UK, 2023) — USD 1.2M contract
+  - Ministry of Justice case management platform (UK, 2022) — USD 780K contract
+  - City of Amsterdam cloud consolidation program (Netherlands, 2024) — EUR 640K contract
+
+Proposed Team Size: 14 people assigned to this engagement
+  - 1 Project Manager (PMP certified)
+  - 2 Cloud Architects (AWS and Azure certified)
+  - 4 DevOps engineers
+  - 2 Security specialists (CISSP)
+  - 3 Migration engineers
+  - 2 Support and QA engineers
+
+Key Personnel:
+  - James Whitfield, Solutions Architect — 12 years cloud infrastructure, previously at AWS Professional Services
+  - Maria Chen, Security Lead — CISSP, ISO 27001 Lead Auditor, 9 years public sector security
+  - Tom Hargreaves, Project Manager — PMP, PRINCE2, delivered 8 government technology projects
+
+Reference Clients (available on request):
+  - NHS Digital (UK)
+  - City of Amsterdam IT Department (Netherlands)
+  - UK Ministry of Justice Digital Services
+
+========================================================
+SECTION E: COMPLIANCE AND CERTIFICATIONS
+========================================================
+
+ISO 27001:2022 — FULL CERTIFICATION (Certificate No. BSI-ISO27001-44821, valid through Dec 2026)
+SOC 2 Type II — FULL CERTIFICATION (most recent audit: March 2025, no material findings)
+GDPR Compliance — Full compliance with UK GDPR and EU GDPR. DPA signed with all sub-processors.
+Cyber Essentials Plus — Certified (March 2025)
+G-Cloud Framework — Active supplier on UK G-Cloud 14
+
+Sanctions Declaration: We confirm that Nimbus Cloud Solutions Ltd. and all named key personnel are not subject to any applicable sanctions under UK, EU, or US law.
+Conflict of Interest Declaration: No conflicts of interest identified. Signed declaration attached.
+Insurance: Professional Indemnity USD 5M; Public Liability USD 10M; Cyber Insurance USD 2M.
+Financial Statements: Audited accounts available for FY2022, FY2023, FY2024 upon request.
+
+Bid Bond: Can provide a bid bond equivalent to 2% of contract value upon request.
+Performance Guarantee: We accept a 10% performance guarantee clause as per standard public sector terms.
+
+========================================================
+SECTION F: TECHNICAL PROPOSAL
+========================================================
+
+Meets Technical Requirements: YES — full compliance with all specified technical requirements in the RFT.
+
+Technical Architecture:
+  - Multi-region active-active deployment (EU West, EU North)
+  - 99.99% SLA with financial penalties for downtime
+  - Automated failover under 60 seconds
+  - End-to-end encryption (AES-256 at rest, TLS 1.3 in transit)
+  - Zero-trust network architecture
+
+Support and Warranty:
+  - 24/7 NOC monitoring with 15-minute response SLA for P1 incidents
+  - Support period: 36 months post-go-live included in price
+  - Maintenance included: yes (patches, security updates, capacity reviews quarterly)
+  - Dedicated account manager assigned for contract duration
+
+Risk Management:
+  Single risk identified: Cloud provider dependency. Mitigated by multi-cloud design (AWS primary, Azure DR). Customer retains full data portability at no cost at end of contract.
+
+========================================================
+EXECUTIVE SUMMARY
+========================================================
+
+Nimbus Cloud Solutions proposes a comprehensive, secure, and fully compliant cloud infrastructure solution for the Department of Digital Services. Our proposal delivers a multi-region, 99.99% SLA platform at USD 285,000, deployed within 60 days, backed by 8 years of public sector experience and full ISO 27001 and SOC 2 Type II certification. We are an active G-Cloud supplier and have successfully delivered 12 comparable government infrastructure projects.
+
+Our pricing is fixed. Our team is pre-assigned. Our certifications are current. We are ready to mobilize within 5 business days of contract signature.

@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Tender {
+  id               String   @id @default(cuid())
+  // Section A: Basic Information
+  title            String
+  referenceNumber  String?
+  department       String
+  category         String
+  procurementMethod String?
+  description      String?
+  submissionDeadline DateTime?
+  contractStartDate  DateTime?
+  contractEndDate    DateTime?
+  // Section B: Budget & Commercial
+  estimatedBudget  Float?
+  currency         String?  @default("USD")
+  contractType     String?
+  paymentTerms     String?
+  bidBondRequired  Boolean  @default(false)
+  performanceGuaranteeRequired Boolean @default(false)
+  // Section C: Evaluation Model
+  criteriaWeights  Json     // { price, delivery, experience, compliance, warranty }
+  minimumPassingScore Float?
+  // Section D: Compliance & Requirements
+  requiredCompliance Json   // { iso27001, gdpr, soc2, localVendor }
+  mandatoryCertifications String?
+  technicalRequirements   String?
+  deliverables            String?
+  // Section E: Governance
+  conflictDeclarationRequired Boolean @default(false)
+  sensitiveProcurement        Boolean @default(false)
+  multiReviewRequired         Boolean @default(false)
+  notes            String?
+  // System fields
+  status           TenderStatus @default(DRAFT)
+  hcsTopicId       String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  vendors          VendorProposal[]
+  evaluation       AiEvaluation?
+  decision         ProcurementDecision?
+  auditEvents      HederaAuditEvent[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model VendorProposal {
+  id               String   @id @default(cuid())
+  tenderId         String
+  // Section A: Supplier Identity
+  companyName      String
+  registrationNumber String?
+  country          String?
+  address          String?
+  contactPerson    String?
+  contactEmail     String?
+  contactPhone     String?
+  taxId            String?
+  // Section B: Commercial Offer
+  price            Float
+  currency         String?  @default("USD")
+  deliveryDays     Int
+  paymentTermsOffered String?
+  discountTerms    String?
+  offerValidityDays Int?
+  // Section C: Capability & Experience
+  experienceScore  Float    // 0-10 used in AI scoring
+  yearsInBusiness  Int?
+  similarProjectsCount Int?
+  proposedTeamSize Int?
+  keyPersonnelSummary String?
+  referenceClients String?
+  // Section D: Compliance & Legal
+  complianceStatus String   // "FULL" | "PARTIAL" | "NONE"
+  certificationsPresent Boolean @default(false)
+  sanctionsDeclaration  Boolean @default(false)
+  conflictDeclaration   Boolean @default(false)
+  insurancePresent      Boolean @default(false)
+  financialStatementsAvailable Boolean @default(false)
+  // Section E: Technical Fit
+  warrantyScore    Float    // 0-10 used in AI scoring
+  meetsTechnicalRequirements Boolean @default(false)
+  supportPeriodMonths Int?
+  maintenanceIncluded Boolean @default(false)
+  riskNotes        String?
+  proposalSummary  String?
+  createdAt        DateTime @default(now())
+
+  tender           Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  aiDecisions      ProcurementDecision[] @relation("AiRecommended")
+  humanDecisions   ProcurementDecision[] @relation("HumanSelected")
+
+  @@index([tenderId])
+}
+
+model AiEvaluation {
+  id              String   @id @default(cuid())
+  tenderId        String   @unique
+  ranking         Json     // [{ vendorId, rank, totalScore, criterionScores }]
+  criterionScores Json     // { vendorId: { price: 85, delivery: 72, ... } }
+  reasoning       String
+  redFlags        Json     // [{ vendorId, flag, severity }]
+  confidenceNotes String?
+  evaluationHash  String   // SHA-256 of the full evaluation JSON
+  createdAt       DateTime @default(now())
+
+  tender          Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+
+  @@index([tenderId])
+}
+
+model ProcurementDecision {
+  id                    String   @id @default(cuid())
+  tenderId              String   @unique
+  aiRecommendedVendorId String
+  selectedVendorId      String
+  overrideUsed          Boolean  @default(false)
+  overrideReason        String?
+  decisionHash          String   // SHA-256 of decision record
+  finalizedAt           DateTime?
+  createdAt             DateTime @default(now())
+
+  tender                Tender         @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  aiRecommendedVendor   VendorProposal @relation("AiRecommended", fields: [aiRecommendedVendorId], references: [id])
+  selectedVendor        VendorProposal @relation("HumanSelected", fields: [selectedVendorId], references: [id])
+
+  @@index([tenderId])
+}
+
+model HederaAuditEvent {
+  id                 String   @id @default(cuid())
+  tenderId           String
+  eventType          HcsEventType
+  localPayload       Json
+  topicId            String?
+  transactionId      String?
+  sequenceNumber     Int?
+  consensusTimestamp String?
+  status             HcsEventStatus @default(PENDING)
+  createdAt          DateTime @default(now())
+
+  tender             Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+
+  @@index([tenderId])
+  @@index([eventType])
+  @@index([consensusTimestamp])
+}
+
+model ReviewerBadge {
+  id              String   @id @default(cuid())
+  reviewerName    String
+  reviewerAccount String?  // Hedera account id if available
+  tenderId        String?
+  tokenId         String?  // HTS token id
+  serialNumber    Int?     // NFT serial
+  metadata        Json?
+  issuedAt        DateTime @default(now())
+
+  @@index([tokenId])
+}
+
+enum TenderStatus {
+  DRAFT
+  OPEN
+  EVALUATED
+  DECIDED
+  FINALIZED
+}
+
+enum HcsEventType {
+  TENDER_CREATED
+  AI_RANKING_GENERATED
+  HUMAN_DECISION_RECORDED
+  DECISION_FINALIZED
+  BADGE_ISSUED
+}
+
+enum HcsEventStatus {
+  PENDING
+  SUBMITTED
+  CONFIRMED
+  FAILED
+}
