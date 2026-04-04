@@ -57,14 +57,6 @@ export default function VendorsPage({
             evaluation.
           </p>
         </div>
-        {canProceed && (
-          <Button
-            size="lg"
-            onClick={() => router.push(`/tenders/${id}/evaluate`)}
-          >
-            Run AI Evaluation <ArrowRight className="w-4 h-4" />
-          </Button>
-        )}
       </div>
 
       <div className="space-y-5">
@@ -98,7 +90,7 @@ export default function VendorsPage({
               size="lg"
               onClick={() => router.push(`/tenders/${id}/evaluate`)}
             >
-              Continue to AI Evaluation <ArrowRight className="w-4 h-4" />
+              Run AI Evaluation <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
         )}

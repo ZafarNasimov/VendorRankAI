@@ -23,13 +23,7 @@ export function Header() {
 
           <nav className="hidden md:flex items-center gap-1">
             <NavLink href="/tenders" active={pathname.startsWith("/tenders")}>
-              Tenders
-            </NavLink>
-            <NavLink
-              href="/tenders/new"
-              active={pathname === "/tenders/new"}
-            >
-              New Tender
+              View All Tenders
             </NavLink>
           </nav>
 

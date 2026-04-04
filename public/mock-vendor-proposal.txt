@@ -1,0 +1,76 @@
+VENDOR PROPOSAL DOCUMENT
+========================
+
+COMPANY INFORMATION
+-------------------
+Company Legal Name: CloudBridge Solutions Ltd.
+Registration Number: CB-2019-447821
+Country of Registration: United Kingdom
+Registered Address: 14 Innovation Park, Manchester, M1 5GR, United Kingdom
+Tax / VAT ID: GB987654321
+
+CONTACT DETAILS
+---------------
+Contact Person: Sarah Mitchell
+Job Title: Head of Procurement Partnerships
+Email: s.mitchell@cloudbridgesolutions.co.uk
+Phone: +44 161 555 0192
+
+COMMERCIAL OFFER
+----------------
+Bid Price: USD 285,000
+Currency: USD
+Delivery Timeline: 75 days from contract award
+Payment Terms: Net 30 days from invoice
+Offer Validity: 90 days
+Discount Terms: 8% discount available for 2-year contract commitment
+
+EXPERIENCE & CAPABILITY
+-----------------------
+Years in Business: 14
+Similar Projects Completed: 9
+Proposed Team Size: 12
+
+Key Personnel:
+- Sarah Mitchell (Project Manager, PMP Certified, 10 years experience)
+- James Okafor (Lead Cloud Architect, AWS Solutions Architect Professional)
+- Mei Lin (DevOps Engineer, Kubernetes CKA certified)
+- David Park (Security Engineer, CISSP, ISO 27001 Lead Auditor)
+
+Reference Clients:
+- Department of Health and Social Care, UK (2023) — National Patient Records Migration
+- City of Dublin Digital Services (2022) — Municipal Cloud Infrastructure
+- Singapore Government Technology Agency (2021) — Cross-agency Data Platform
+
+COMPLIANCE & LEGAL
+------------------
+ISO 27001: Certified (current, expires 2026)
+SOC 2 Type II: Certified (most recent audit: November 2024)
+Sanctions/Debarment: No active sanctions. Full declaration signed.
+Conflict of Interest: No conflicts declared.
+Insurance: Professional Indemnity £5M, Public Liability £10M
+Financial Statements: Audited financials available for 2022, 2023, 2024.
+Compliance Status: FULL
+
+WARRANTY & SUPPORT
+------------------
+Warranty Score: 8.5
+Support Period: 24 months post-delivery
+Maintenance: Included — quarterly updates, 99.9% SLA, 4-hour response time
+Meets All Technical Requirements: Yes
+
+RISK NOTES
+----------
+Requires 3-week data migration window with coordinated access to legacy systems.
+Third-party licence costs for monitoring tools are included in the bid price.
+No offshore subcontracting — all delivery team based in UK and EU.
+
+PROPOSAL SUMMARY
+----------------
+CloudBridge Solutions proposes a fully managed cloud infrastructure migration and
+operations platform built on AWS GovCloud with a dedicated security-first architecture.
+Our team of 12 certified specialists has delivered 9 similar government-scale projects
+and holds active ISO 27001 and SOC 2 Type II certifications. We offer competitive
+pricing at USD 285,000 with a 75-day delivery timeline, 24-month support included,
+and a 2-year discount option. Our proven track record in public sector digital
+transformation makes us uniquely positioned to deliver this contract.

@@ -21,7 +21,7 @@ export function PrintButton({ variant = "both", reportTitle = "Procurement-Repor
       // Target the report document area (exclude toolbar)
       const reportEl = document.getElementById("report-document");
       if (!reportEl) {
-        window.print();
+        console.error("PDF generation failed: #report-document element not found");
         return;
       }
 
@@ -72,10 +72,15 @@ export function PrintButton({ variant = "both", reportTitle = "Procurement-Repor
       }
 
       const fileName = `${reportTitle.replace(/[^a-zA-Z0-9]/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
-      pdf.save(fileName);
+      const blob = pdf.output("blob");
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("PDF generation failed, falling back to print:", err);
-      window.print();
+      console.error("PDF generation failed:", err);
     } finally {
       setPdfLoading(false);
     }

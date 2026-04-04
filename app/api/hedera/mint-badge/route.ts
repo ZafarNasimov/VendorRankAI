@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       tenderId,
       tokenId: result.tokenId,
       serialNumber: result.serialNumber,
-      metadata: JSON.parse(metadata),
+      metadata: metadata,
       issuedAt: new Date(),
     },
   });

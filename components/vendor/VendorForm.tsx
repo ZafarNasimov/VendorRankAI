@@ -25,8 +25,7 @@ import {
 
 // Fields that are considered "AI-owned" when extracted from documents
 const AI_LOCKABLE_FIELDS = new Set([
-  "experienceScore", "complianceStatus", "warrantyScore",
-  "proposalSummary", "meetsTechnicalRequirements",
+  "warrantyScore", "proposalSummary", "meetsTechnicalRequirements",
 ]);
 
 function AiExtractedBadge({
@@ -150,13 +149,6 @@ function ScoreSelector({ label, hint, value, onChange, locked = false }: {
   return (
     <Field label={label} hint={hint}>
       <div className={`flex items-center gap-3 ${locked ? "opacity-60 pointer-events-none select-none" : ""}`}>
-        <input
-          type="range" min="0" max="10" step="0.5"
-          value={num}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={locked}
-          className="flex-1 accent-blue-600 disabled:opacity-60"
-        />
         <div className="flex items-center gap-1 w-20">
           <input
             type="number" min="0" max="10" step="0.5"
@@ -176,6 +168,112 @@ function ScoreSelector({ label, hint, value, onChange, locked = false }: {
       </div>
     </Field>
   );
+}
+
+/** Compute an experience score (0–10) from three raw inputs */
+function computeExperienceScore(
+  yearsInBusiness: string,
+  similarProjectsCount: string,
+  proposedTeamSize: string
+): number {
+  const years = parseInt(yearsInBusiness) || 0;
+  const projects = parseInt(similarProjectsCount) || 0;
+  const team = parseInt(proposedTeamSize) || 0;
+
+  // Years: 0=0pts, 1-2=1, 3-5=2, 6-10=3, 11-20=4, 20+=5  (max 5)
+  const yearPts =
+    years === 0 ? 0 :
+    years <= 2  ? 1 :
+    years <= 5  ? 2 :
+    years <= 10 ? 3 :
+    years <= 20 ? 4 : 5;
+
+  // Projects: 0=0, 1-2=1, 3-5=2, 6-10=3, 11+=3  (max 3)
+  const projectPts =
+    projects === 0 ? 0 :
+    projects <= 2  ? 1 :
+    projects <= 5  ? 2 : 3;
+
+  // Team size: 0=0, 1-3=0.5, 4-10=1, 11-20=1.5, 21+=2  (max 2)
+  const teamPts =
+    team === 0  ? 0  :
+    team <= 3   ? 0.5 :
+    team <= 10  ? 1  :
+    team <= 20  ? 1.5 : 2;
+
+  return Math.min(10, Math.round((yearPts + projectPts + teamPts) * 10) / 10);
+}
+
+function ExperienceBar({ yearsInBusiness, similarProjectsCount, proposedTeamSize }: {
+  yearsInBusiness: string;
+  similarProjectsCount: string;
+  proposedTeamSize: string;
+}) {
+  const score = computeExperienceScore(yearsInBusiness, similarProjectsCount, proposedTeamSize);
+  const hasAnyInput = yearsInBusiness || similarProjectsCount || proposedTeamSize;
+
+  const color = score >= 8 ? "bg-emerald-500" : score >= 5 ? "bg-amber-500" : "bg-red-400";
+  const label = score >= 8 ? "Strong" : score >= 5 ? "Moderate" : score > 0 ? "Limited" : "—";
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-slate-500">Computed from inputs below</span>
+        {hasAnyInput && (
+          <span className={`text-sm font-semibold ${score >= 8 ? "text-emerald-600" : score >= 5 ? "text-amber-600" : "text-red-500"}`}>
+            {score.toFixed(1)} / 10 · {label}
+          </span>
+        )}
+        {!hasAnyInput && (
+          <span className="text-sm text-slate-400">Fill in fields below</span>
+        )}
+      </div>
+      <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-300 ${color}`}
+          style={{ width: `${score * 10}%` }}
+        />
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-xs text-slate-500">
+        <div className="flex flex-col items-center gap-1">
+          <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div className="h-full rounded-full bg-blue-400 transition-all"
+              style={{ width: `${Math.min(100, (parseInt(yearsInBusiness) || 0) / 20 * 100)}%` }} />
+          </div>
+          <span>Years in Business</span>
+        </div>
+        <div className="flex flex-col items-center gap-1">
+          <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div className="h-full rounded-full bg-blue-400 transition-all"
+              style={{ width: `${Math.min(100, (parseInt(similarProjectsCount) || 0) / 10 * 100)}%` }} />
+          </div>
+          <span>Similar Projects</span>
+        </div>
+        <div className="flex flex-col items-center gap-1">
+          <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div className="h-full rounded-full bg-blue-400 transition-all"
+              style={{ width: `${Math.min(100, (parseInt(proposedTeamSize) || 0) / 20 * 100)}%` }} />
+          </div>
+          <span>Team Size</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Derive compliance status from the 5 toggle checkboxes */
+function deriveComplianceStatus(
+  certificationsPresent: boolean,
+  sanctionsDeclaration: boolean,
+  conflictDeclaration: boolean,
+  insurancePresent: boolean,
+  financialStatementsAvailable: boolean
+): "FULL" | "PARTIAL" | "NONE" {
+  const count = [certificationsPresent, sanctionsDeclaration, conflictDeclaration, insurancePresent, financialStatementsAvailable]
+    .filter(Boolean).length;
+  if (count === 5) return "FULL";
+  if (count >= 1) return "PARTIAL";
+  return "NONE";
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -204,7 +302,28 @@ export function VendorForm({ tenderId, onAdded }: VendorFormProps) {
   }
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
-    setForm((f) => ({ ...f, [key]: value }));
+    setForm((f) => {
+      const next = { ...f, [key]: value };
+      // Auto-compute experience score from contributing inputs
+      if (key === "yearsInBusiness" || key === "similarProjectsCount" || key === "proposedTeamSize") {
+        next.experienceScore = String(computeExperienceScore(
+          key === "yearsInBusiness" ? String(value) : next.yearsInBusiness,
+          key === "similarProjectsCount" ? String(value) : next.similarProjectsCount,
+          key === "proposedTeamSize" ? String(value) : next.proposedTeamSize,
+        ));
+      }
+      // Auto-compute compliance status from checkboxes
+      if (["certificationsPresent","sanctionsDeclaration","conflictDeclaration","insurancePresent","financialStatementsAvailable"].includes(key)) {
+        next.complianceStatus = deriveComplianceStatus(
+          key === "certificationsPresent" ? Boolean(value) : next.certificationsPresent,
+          key === "sanctionsDeclaration" ? Boolean(value) : next.sanctionsDeclaration,
+          key === "conflictDeclaration" ? Boolean(value) : next.conflictDeclaration,
+          key === "insurancePresent" ? Boolean(value) : next.insurancePresent,
+          key === "financialStatementsAvailable" ? Boolean(value) : next.financialStatementsAvailable,
+        );
+      }
+      return next;
+    });
   }
 
   function applyAutofill(draft: FlatVendorDraft) {
@@ -218,34 +337,57 @@ export function VendorForm({ tenderId, onAdded }: VendorFormProps) {
     setAiExtracted(extracted);
     setOverridden(new Set()); // reset overrides on new extraction
 
-    setForm((f) => ({
-      ...f,
-      ...(draft.companyName        !== undefined && { companyName: draft.companyName }),
-      ...(draft.registrationNumber !== undefined && { registrationNumber: draft.registrationNumber }),
-      ...(draft.country            !== undefined && { country: draft.country }),
-      ...(draft.address            !== undefined && { address: draft.address }),
-      ...(draft.contactPerson      !== undefined && { contactPerson: draft.contactPerson }),
-      ...(draft.contactEmail       !== undefined && { contactEmail: draft.contactEmail }),
-      ...(draft.contactPhone       !== undefined && { contactPhone: draft.contactPhone }),
-      ...(draft.taxId              !== undefined && { taxId: draft.taxId }),
-      ...(draft.price              !== undefined && { price: draft.price }),
-      ...(draft.currency           !== undefined && { currency: draft.currency }),
-      ...(draft.deliveryDays       !== undefined && { deliveryDays: draft.deliveryDays }),
-      ...(draft.paymentTermsOffered !== undefined && { paymentTermsOffered: draft.paymentTermsOffered }),
-      ...(draft.discountTerms      !== undefined && { discountTerms: draft.discountTerms }),
-      ...(draft.offerValidityDays  !== undefined && { offerValidityDays: draft.offerValidityDays }),
-      ...(draft.experienceScore    !== undefined && { experienceScore: draft.experienceScore }),
-      ...(draft.yearsInBusiness    !== undefined && { yearsInBusiness: draft.yearsInBusiness }),
-      ...(draft.similarProjectsCount !== undefined && { similarProjectsCount: draft.similarProjectsCount }),
-      ...(draft.proposedTeamSize   !== undefined && { proposedTeamSize: draft.proposedTeamSize }),
-      ...(draft.keyPersonnelSummary !== undefined && { keyPersonnelSummary: draft.keyPersonnelSummary }),
-      ...(draft.referenceClients   !== undefined && { referenceClients: draft.referenceClients }),
-      ...(draft.complianceStatus   !== undefined && { complianceStatus: draft.complianceStatus }),
-      ...(draft.warrantyScore      !== undefined && { warrantyScore: draft.warrantyScore }),
-      ...(draft.supportPeriodMonths !== undefined && { supportPeriodMonths: draft.supportPeriodMonths }),
-      ...(draft.riskNotes          !== undefined && { riskNotes: draft.riskNotes }),
-      ...(draft.proposalSummary    !== undefined && { proposalSummary: draft.proposalSummary }),
-    }));
+    setForm((f) => {
+      const next = {
+        ...f,
+        ...(draft.companyName        !== undefined && { companyName: draft.companyName }),
+        ...(draft.registrationNumber !== undefined && { registrationNumber: draft.registrationNumber }),
+        ...(draft.country            !== undefined && { country: draft.country }),
+        ...(draft.address            !== undefined && { address: draft.address }),
+        ...(draft.contactPerson      !== undefined && { contactPerson: draft.contactPerson }),
+        ...(draft.contactEmail       !== undefined && { contactEmail: draft.contactEmail }),
+        ...(draft.contactPhone       !== undefined && { contactPhone: draft.contactPhone }),
+        ...(draft.taxId              !== undefined && { taxId: draft.taxId }),
+        ...(draft.price              !== undefined && { price: draft.price }),
+        ...(draft.currency           !== undefined && { currency: draft.currency }),
+        ...(draft.deliveryDays       !== undefined && { deliveryDays: draft.deliveryDays }),
+        ...(draft.paymentTermsOffered !== undefined && { paymentTermsOffered: draft.paymentTermsOffered }),
+        ...(draft.discountTerms      !== undefined && { discountTerms: draft.discountTerms }),
+        ...(draft.offerValidityDays  !== undefined && { offerValidityDays: draft.offerValidityDays }),
+        ...(draft.yearsInBusiness    !== undefined && { yearsInBusiness: draft.yearsInBusiness }),
+        ...(draft.similarProjectsCount !== undefined && { similarProjectsCount: draft.similarProjectsCount }),
+        ...(draft.proposedTeamSize   !== undefined && { proposedTeamSize: draft.proposedTeamSize }),
+        ...(draft.keyPersonnelSummary !== undefined && { keyPersonnelSummary: draft.keyPersonnelSummary }),
+        ...(draft.referenceClients   !== undefined && { referenceClients: draft.referenceClients }),
+        ...(draft.warrantyScore      !== undefined && { warrantyScore: draft.warrantyScore }),
+        ...(draft.supportPeriodMonths !== undefined && { supportPeriodMonths: draft.supportPeriodMonths }),
+        ...(draft.riskNotes          !== undefined && { riskNotes: draft.riskNotes }),
+        ...(draft.proposalSummary    !== undefined && { proposalSummary: draft.proposalSummary }),
+      };
+      // Recompute experience score from extracted inputs (ignore AI-extracted raw score)
+      next.experienceScore = String(computeExperienceScore(
+        next.yearsInBusiness, next.similarProjectsCount, next.proposedTeamSize
+      ));
+      // Recompute compliance status from extracted compliance status hint
+      // (AI-extracted complianceStatus is used as a hint to set checkboxes, then derived)
+      if (draft.complianceStatus === "FULL") {
+        next.certificationsPresent = true;
+        next.sanctionsDeclaration = true;
+        next.conflictDeclaration = true;
+        next.insurancePresent = true;
+        next.financialStatementsAvailable = true;
+      } else if (draft.complianceStatus === "PARTIAL") {
+        next.certificationsPresent = true;
+      }
+      next.complianceStatus = deriveComplianceStatus(
+        next.certificationsPresent,
+        next.sanctionsDeclaration,
+        next.conflictDeclaration,
+        next.insurancePresent,
+        next.financialStatementsAvailable,
+      );
+      return next;
+    });
     setShowUpload(false);
     setOpen(true);
     setSection(0);
@@ -580,17 +722,15 @@ export function VendorForm({ tenderId, onAdded }: VendorFormProps) {
                 <span className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Section C — Capability &amp; Experience</span>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-slate-700">Experience Score (used in AI evaluation)</span>
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-slate-700">Experience Score <span className="text-xs text-slate-400 font-normal">(used in AI evaluation)</span></span>
                   <AiExtractedBadge fieldKey="experienceScore" aiExtracted={aiExtracted} overridden={overridden} onOverride={handleOverride} />
                 </div>
-                <ScoreSelector
-                  label=""
-                  hint="Rate this vendor's relevant experience and track record (0 = none, 10 = exceptional)"
-                  value={form.experienceScore}
-                  onChange={(v) => !isFieldLocked("experienceScore") && set("experienceScore", v)}
-                  locked={isFieldLocked("experienceScore")}
+                <ExperienceBar
+                  yearsInBusiness={form.yearsInBusiness}
+                  similarProjectsCount={form.similarProjectsCount}
+                  proposedTeamSize={form.proposedTeamSize}
                 />
               </div>
 
@@ -650,29 +790,22 @@ export function VendorForm({ tenderId, onAdded }: VendorFormProps) {
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-slate-700">Overall Compliance Status</p>
-                  <AiExtractedBadge fieldKey="complianceStatus" aiExtracted={aiExtracted} overridden={overridden} onOverride={handleOverride} />
+                  <p className="text-sm font-medium text-slate-700">Overall Compliance Status <span className="text-xs text-slate-400 font-normal">(derived from boxes below)</span></p>
                 </div>
-                <div className={`flex gap-3 ${isFieldLocked("complianceStatus") ? "opacity-60 pointer-events-none" : ""}`}>
+                <div className="flex gap-3 pointer-events-none select-none">
                   {(["FULL", "PARTIAL", "NONE"] as const).map((s) => (
-                    <label
+                    <div
                       key={s}
-                      className={`flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors flex-1 justify-center ${
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium flex-1 justify-center transition-colors ${
                         form.complianceStatus === s
                           ? s === "FULL" ? "border-emerald-500 bg-emerald-50 text-emerald-700"
                             : s === "PARTIAL" ? "border-amber-500 bg-amber-50 text-amber-700"
                             : "border-red-500 bg-red-50 text-red-700"
-                          : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                          : "border-slate-200 bg-white text-slate-400"
                       }`}
                     >
-                      <input
-                        type="radio" className="sr-only" value={s}
-                        checked={form.complianceStatus === s}
-                        onChange={() => !isFieldLocked("complianceStatus") && set("complianceStatus", s)}
-                        disabled={isFieldLocked("complianceStatus")}
-                      />
                       {s === "FULL" ? "Compliant" : s === "PARTIAL" ? "Partially Compliant" : "Non-Compliant"}
-                    </label>
+                    </div>
                   ))}
                 </div>
               </div>
