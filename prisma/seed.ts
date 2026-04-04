@@ -276,10 +276,239 @@ async function main() {
     },
   });
 
-  console.log("✓ Seeded 3 tenders with full demo data");
+  // ─── TENDER 4: SCANDAL MODE — Suspicious Override Demo ──────────────────────
+  // AI recommends Vendor A (clear winner). Human picks Vendor C (worst score,
+  // partial compliance, higher price). System flags HIGH risk override.
+  const scandalTender = await prisma.tender.create({
+    data: {
+      title: "National Health Portal Infrastructure — SCANDAL MODE DEMO",
+      referenceNumber: "MOH-2025-INFRA-SCANDAL",
+      department: "Ministry of Health",
+      category: "Cloud & Infrastructure",
+      procurementMethod: "Open Tender",
+      description: "Procurement of cloud infrastructure for the national health portal. All vendors must hold ISO 27001 and GDPR compliance. This tender is flagged as sensitive procurement.",
+      estimatedBudget: 1800000,
+      currency: "USD",
+      status: "DECIDED",
+      sensitiveProcurement: true,
+      conflictDeclarationRequired: true,
+      multiReviewRequired: true,
+      criteriaWeights: {
+        price: 0.25,
+        delivery: 0.15,
+        experience: 0.3,
+        compliance: 0.2,
+        warranty: 0.1,
+      },
+      requiredCompliance: { iso27001: true, gdpr: true, soc2: true, localVendor: false },
+      notes: "DEMO SCENARIO: Shows override risk detection when human selection contradicts strong AI recommendation. Vendor C selected despite being ranked last with compliance issues.",
+    },
+  });
+
+  const scandalVendors = await Promise.all([
+    // Vendor A — AI top pick: strong compliance, competitive price, high experience
+    prisma.vendorProposal.create({
+      data: {
+        tenderId: scandalTender.id,
+        companyName: "ClearPath Health Cloud",
+        registrationNumber: "CPH-2021-UK-4421",
+        country: "United Kingdom",
+        price: 1450000,
+        deliveryDays: 60,
+        experienceScore: 9.2,
+        yearsInBusiness: 14,
+        similarProjectsCount: 11,
+        complianceStatus: "FULL",
+        certificationsPresent: true,
+        sanctionsDeclaration: true,
+        conflictDeclaration: true,
+        insurancePresent: true,
+        financialStatementsAvailable: true,
+        warrantyScore: 8.8,
+        meetsTechnicalRequirements: true,
+        supportPeriodMonths: 36,
+        maintenanceIncluded: true,
+        proposalSummary: "ClearPath specializes in health sector cloud deployments with 11 completed national health portal projects. ISO 27001, SOC2 Type II, and GDPR-ready infrastructure. Dedicated health sector team of 45 engineers.",
+      },
+    }),
+    // Vendor B — solid but ranked second
+    prisma.vendorProposal.create({
+      data: {
+        tenderId: scandalTender.id,
+        companyName: "MedCloud Systems",
+        registrationNumber: "MCS-2019-DE-8832",
+        country: "Germany",
+        price: 1380000,
+        deliveryDays: 75,
+        experienceScore: 8.0,
+        yearsInBusiness: 9,
+        similarProjectsCount: 7,
+        complianceStatus: "FULL",
+        certificationsPresent: true,
+        sanctionsDeclaration: true,
+        conflictDeclaration: true,
+        insurancePresent: true,
+        financialStatementsAvailable: true,
+        warrantyScore: 7.5,
+        meetsTechnicalRequirements: true,
+        supportPeriodMonths: 24,
+        maintenanceIncluded: true,
+        proposalSummary: "German-based health cloud provider with strong EU data residency guarantees. Good compliance posture. Slightly higher delivery timeline and less UK-specific experience than top vendor.",
+      },
+    }),
+    // Vendor C — HUMAN SELECTION: last place, partial compliance, NO sanctions declaration, overpriced
+    prisma.vendorProposal.create({
+      data: {
+        tenderId: scandalTender.id,
+        companyName: "Meridian Digital Ltd",
+        registrationNumber: "MDL-2023-SG-1102",
+        country: "Singapore",
+        price: 1750000,
+        deliveryDays: 110,
+        experienceScore: 4.5,
+        yearsInBusiness: 3,
+        similarProjectsCount: 1,
+        complianceStatus: "PARTIAL",
+        certificationsPresent: false,
+        sanctionsDeclaration: false, // ← MISSING
+        conflictDeclaration: false,  // ← MISSING
+        insurancePresent: false,
+        financialStatementsAvailable: false,
+        warrantyScore: 4.0,
+        meetsTechnicalRequirements: false,
+        supportPeriodMonths: 6,
+        maintenanceIncluded: false,
+        riskNotes: "Company incorporated 2022. Only 1 comparable project on record (not in health sector). No sanctions declaration submitted. Partial compliance only. Highest bid price in the field.",
+        proposalSummary: "Emerging provider with competitive future roadmap. Limited public sector track record. Proposes a novel architecture not previously validated in health sector deployments.",
+      },
+    }),
+  ]);
+
+  const scandalRanking = [
+    { vendorId: scandalVendors[0].id, rank: 1, totalScore: 89.4, criterionScores: { price: 78, delivery: 85, experience: 96, compliance: 100, warranty: 90 } },
+    { vendorId: scandalVendors[1].id, rank: 2, totalScore: 81.2, criterionScores: { price: 85, delivery: 68, experience: 82, compliance: 100, warranty: 74 } },
+    { vendorId: scandalVendors[2].id, rank: 3, totalScore: 34.8, criterionScores: { price: 30, delivery: 20, experience: 32, compliance: 40, warranty: 32 } },
+  ];
+  const scandalCriterionScores: Record<string, Record<string, number>> = {};
+  scandalRanking.forEach((r) => { scandalCriterionScores[r.vendorId] = r.criterionScores; });
+
+  const scandalEvalReasonig = `**ClearPath Health Cloud** is the clear AI recommendation with a composite score of 89.4 — the highest in this evaluation by a substantial margin. With 14 years in operation, 11 completed national health portal deployments, and full ISO 27001/SOC2/GDPR compliance, ClearPath represents the lowest-risk, highest-capability option for this sensitive health infrastructure tender.
+
+**MedCloud Systems** ranks second at 81.2 and would be a defensible choice. Strong compliance posture and competitive pricing offset the slightly lower experience score. However, the 75-day delivery timeline and less health-sector-specific track record place it behind ClearPath on the dominant experience criterion.
+
+**Meridian Digital Ltd** ranks last with a score of 34.8 — a significant distance from the field average. Critical concerns include: (1) only PARTIAL compliance, with no certifications present; (2) missing sanctions and conflict-of-interest declarations; (3) highest bid price at $1,750,000 despite weakest capability; (4) only 3 years in operation with a single comparable project not in the health sector; and (5) explicit non-compliance with the technical requirements. Award to this vendor would represent a material procurement risk.
+
+The procurement committee should note the significant score disparity between ranked 1 (89.4) and ranked 3 (34.8). Any selection of Meridian Digital Ltd over ClearPath Health Cloud would require exceptional justification, independent legal review, and enhanced oversight given the sensitive nature of this procurement.`;
+
+  const scandalEvalHash = sha256({
+    tenderId: scandalTender.id,
+    ranking: scandalRanking,
+    criterionScores: scandalCriterionScores,
+    reasoning: scandalEvalReasonig,
+    redFlags: [],
+  });
+
+  await prisma.aiEvaluation.create({
+    data: {
+      tenderId: scandalTender.id,
+      ranking: scandalRanking as object[],
+      criterionScores: scandalCriterionScores as object,
+      reasoning: scandalEvalReasonig,
+      vendorInsights: {
+        [scandalVendors[0].id]: {
+          strengths: ["14 years sector experience with 11 national health portal references", "Full ISO 27001, SOC2, and GDPR compliance — zero certification risk", "Lowest delivery timeline with included 36-month support", "Competitive pricing below budget ceiling"],
+          weaknesses: ["Slightly higher price than Vendor B ($1.45M vs $1.38M)"],
+          riskLevel: "LOW",
+          summaryNote: "Clear evaluation winner. Strong across all weighted criteria. Recommended without qualification.",
+        },
+        [scandalVendors[1].id]: {
+          strengths: ["Full compliance posture", "Strong EU data residency guarantees", "Competitive pricing"],
+          weaknesses: ["Longer delivery timeline (75 days)", "Less health-sector-specific UK track record"],
+          riskLevel: "LOW",
+          summaryNote: "Solid second-place option. Good compliance and pricing but weaker on the dominant experience criterion.",
+        },
+        [scandalVendors[2].id]: {
+          strengths: ["Novel architecture proposal"],
+          weaknesses: ["Highest bid price ($1.75M) — 20% above top vendor", "Only 3 years in operation — unproven at scale", "PARTIAL compliance — missing mandatory certifications", "Missing sanctions and conflict-of-interest declarations", "Does NOT meet technical requirements", "Only 1 comparable project, not in health sector", "6-month support period — well below tender standard", "No financial statements provided"],
+          riskLevel: "HIGH",
+          summaryNote: "Last-place ranking with score of 34.8/100. Selection of this vendor over #1 requires exceptional justification.",
+        },
+      } as object,
+      whyTopVendorWon: "ClearPath Health Cloud achieved the highest composite score (89.4/100) by combining the strongest experience profile (11 national health portal references, 14 years), full regulatory compliance (ISO 27001, SOC2, GDPR), the fastest delivery timeline, and competitive pricing at $1.45M — well below budget. No other vendor matched this combination across the heavily-weighted experience and compliance criteria.",
+      redFlags: [
+        { vendorId: scandalVendors[2].id, flag: "Meridian Digital Ltd has PARTIAL compliance only — ISO 27001, SOC2, and GDPR certifications not confirmed. Mandatory for health data infrastructure.", severity: "HIGH" },
+        { vendorId: scandalVendors[2].id, flag: "Meridian Digital Ltd has not submitted a sanctions/debarment declaration. Required due diligence step is missing.", severity: "HIGH" },
+        { vendorId: scandalVendors[2].id, flag: "Meridian Digital Ltd does NOT meet stated technical requirements. Award without a technical remediation plan would be non-compliant.", severity: "HIGH" },
+        { vendorId: scandalVendors[2].id, flag: "Meridian Digital Ltd bid ($1,750,000) is 20.7% above the top vendor and $300,000 above the field average. No value justification provided.", severity: "MEDIUM" },
+        { vendorId: scandalVendors[2].id, flag: "Meridian Digital Ltd: only 3 years in operation, 1 comparable project (not health sector), no financial statements. Viability risk is HIGH.", severity: "HIGH" },
+      ] as object[],
+      confidenceNotes: "High confidence. Data is complete. Score disparity between Vendor A and Vendor C is statistically significant (gap: 54.6 points). Independent review recommended before any override of this recommendation.",
+      evaluationHash: scandalEvalHash,
+    },
+  });
+
+  // Human selects LAST PLACE vendor — Scandal Mode triggers HIGH RISK
+  const scandalDecisionHash = sha256({
+    tenderId: scandalTender.id,
+    aiRecommendedVendorId: scandalVendors[0].id,
+    selectedVendorId: scandalVendors[2].id,
+    overrideUsed: true,
+    overrideReason: "Meridian Digital has a strategic partnership agreement under review. Selection pending commercial review.",
+    timestamp: new Date("2025-04-01T09:00:00Z").toISOString(),
+  });
+
+  await prisma.procurementDecision.create({
+    data: {
+      tenderId: scandalTender.id,
+      aiRecommendedVendorId: scandalVendors[0].id,
+      selectedVendorId: scandalVendors[2].id,
+      overrideUsed: true,
+      overrideReason: "Meridian Digital has a strategic partnership agreement under review. Selection pending commercial review.",
+      overrideRiskLevel: "HIGH",
+      overrideRiskReasons: [
+        "Selected vendor scored 54.6 points below AI recommendation (34.8 vs 89.4) — a critical gap.",
+        "AI-recommended vendor is fully compliant while the selected vendor has PARTIAL compliance and no certifications.",
+        "Selected vendor is $300,000 more expensive ($1,750,000 vs $1,450,000) despite a significantly lower evaluation score.",
+        "Selected vendor does NOT meet stated technical requirements; AI-recommended vendor does.",
+        "Selected vendor has not submitted a sanctions/debarment declaration.",
+        "Selected vendor has only 3 years of operation vs 14 years for AI recommendation.",
+      ] as object,
+      scoreGap: 54.6,
+      complianceGapSummary: "ClearPath Health Cloud (FULL compliance) → Meridian Digital Ltd (PARTIAL compliance, no certifications, missing declarations)",
+      decisionHash: scandalDecisionHash,
+    },
+  });
+
+  await prisma.hederaAuditEvent.create({
+    data: {
+      tenderId: scandalTender.id,
+      eventType: "TENDER_CREATED",
+      localPayload: { eventType: "TENDER_CREATED", tenderId: scandalTender.id, title: scandalTender.title, department: scandalTender.department, category: scandalTender.category, procurementMethod: "Open Tender", estimatedBudget: 1800000, currency: "USD", referenceNumber: "MOH-2025-INFRA-SCANDAL", recordedBy: "health-procurement-admin", recordedAt: "2025-03-01T09:00:00Z" } as object,
+      status: "PENDING",
+    },
+  });
+  await prisma.hederaAuditEvent.create({
+    data: {
+      tenderId: scandalTender.id,
+      eventType: "AI_RANKING_GENERATED",
+      localPayload: { eventType: "AI_RANKING_GENERATED", tenderId: scandalTender.id, vendorIds: scandalVendors.map(v => v.id), vendorCount: 3, topVendorId: scandalVendors[0].id, topVendorName: "ClearPath Health Cloud", evaluationHash: scandalEvalHash, scoringModelVersion: "v1.0", recordedBy: "ai-system", recordedAt: "2025-03-28T14:00:00Z" } as object,
+      status: "PENDING",
+    },
+  });
+  await prisma.hederaAuditEvent.create({
+    data: {
+      tenderId: scandalTender.id,
+      eventType: "HUMAN_DECISION_RECORDED",
+      localPayload: { eventType: "HUMAN_DECISION_RECORDED", tenderId: scandalTender.id, aiTopVendorId: scandalVendors[0].id, aiTopVendorName: "ClearPath Health Cloud", selectedVendorId: scandalVendors[2].id, selectedVendorName: "Meridian Digital Ltd", overrideUsed: true, overrideRiskLevel: "HIGH", scoreGap: 54.6, overrideReason: "Meridian Digital has a strategic partnership agreement under review.", decisionHash: scandalDecisionHash, recordedBy: "Director of Procurement", recordedAt: "2025-04-01T09:00:00Z" } as object,
+      status: "PENDING",
+    },
+  });
+
+  console.log("✓ Seeded 4 tenders with full demo data");
   console.log(`  • ${tender1.id} — Cloud Infrastructure (FINALIZED, no override)`);
   console.log(`  • ${tender2.id} — Cybersecurity (FINALIZED, with override)`);
   console.log(`  • ${tender3.id} — ERP System (OPEN, in progress)`);
+  console.log(`  • ${scandalTender.id} — Health Portal SCANDAL MODE (DECIDED, HIGH RISK override)`);
 }
 
 main()

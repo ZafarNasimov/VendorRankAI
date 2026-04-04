@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Breadcrumbs } from "@/components/layout/Header";
@@ -10,13 +9,14 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { VendorTable } from "@/components/vendor/VendorTable";
-import { Zap, RefreshCw, Lock } from "lucide-react";
-import type { VendorProposal, AiEvaluation } from "@/types/tender";
+import { Zap, Lock } from "lucide-react";
+import type { VendorProposal, AiEvaluation, CriteriaWeights } from "@/types/tender";
 
 interface TenderData {
   id: string;
   title: string;
   status: string;
+  criteriaWeights: CriteriaWeights;
   vendors: VendorProposal[];
   evaluation: AiEvaluation | null;
   decision: {
@@ -32,7 +32,6 @@ export default function EvaluatePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const router = useRouter();
   const [tender, setTender] = useState<TenderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [evaluating, setEvaluating] = useState(false);
@@ -122,28 +121,13 @@ export default function EvaluatePage({
             )}
           </div>
           <p className="text-slate-500">
-            AI-assisted multi-criteria analysis across{" "}
-            {tender.vendors.length} vendors. All scores are explainable and hashed on Hedera.
+            AI-assisted multi-criteria explainability across{" "}
+            {tender.vendors.length} vendors. All scores are hashed and logged to Hedera.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {tender.evaluation && !isFinalized && (
-            <Button variant="outline" onClick={runEvaluation} loading={evaluating} size="sm">
-              <RefreshCw className="w-4 h-4" />
-              Re-evaluate
-            </Button>
-          )}
-          {!tender.evaluation && (
-            <Button onClick={runEvaluation} loading={evaluating} size="lg">
-              <Zap className="w-4 h-4" />
-              Run AI Evaluation
-            </Button>
-          )}
         </div>
       </div>
 
-      {/* Vendor comparison table */}
+      {/* Vendor overview table */}
       <Card className="mb-6">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -159,13 +143,17 @@ export default function EvaluatePage({
         />
       </Card>
 
+      {/* Evaluation panel or empty state */}
       {tender.evaluation ? (
         <EvaluationPanel
           tenderId={id}
           evaluation={tender.evaluation}
           vendors={tender.vendors}
+          criteriaWeights={tender.criteriaWeights as unknown as Record<string, number>}
           selectedVendorId={tender.decision?.selectedVendorId ?? null}
           isFinalized={isFinalized}
+          onReEvaluate={!isFinalized ? runEvaluation : undefined}
+          isReEvaluating={evaluating}
         />
       ) : (
         <div className="text-center py-16">
@@ -180,9 +168,9 @@ export default function EvaluatePage({
             using weighted multi-criteria analysis. The result will be hashed and
             logged to the Hedera audit trail.
           </p>
-          <Button onClick={runEvaluation} loading={evaluating} size="lg">
+          <Button onClick={runEvaluation} loading={evaluating} size="lg" disabled={tender.vendors.length < 2}>
             <Zap className="w-4 h-4" />
-            Run AI Evaluation
+            {tender.vendors.length < 2 ? "Add at least 2 vendors first" : "Run AI Evaluation"}
           </Button>
         </div>
       )}

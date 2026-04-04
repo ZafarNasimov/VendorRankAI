@@ -18,7 +18,8 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: parsed.error.flatten() }, { status: 422 });
   }
 
-  const { tenderId, selectedVendorId, overrideUsed, overrideReason, reviewerName } =
+  const { tenderId, selectedVendorId, overrideUsed, overrideReason, reviewerName,
+    overrideRiskLevel, overrideRiskReasons, scoreGap, complianceGapSummary } =
     parsed.data;
 
   const tender = await prisma.tender.findUnique({
@@ -58,6 +59,10 @@ export async function POST(req: NextRequest) {
       selectedVendorId,
       overrideUsed,
       overrideReason: overrideReason ?? null,
+      overrideRiskLevel: overrideRiskLevel ?? null,
+      overrideRiskReasons: overrideRiskReasons ?? null,
+      scoreGap: scoreGap ?? null,
+      complianceGapSummary: complianceGapSummary ?? null,
       decisionHash,
       finalizedAt: null,
     },
@@ -67,6 +72,10 @@ export async function POST(req: NextRequest) {
       selectedVendorId,
       overrideUsed,
       overrideReason: overrideReason ?? null,
+      overrideRiskLevel: overrideRiskLevel ?? null,
+      overrideRiskReasons: overrideRiskReasons ?? null,
+      scoreGap: scoreGap ?? null,
+      complianceGapSummary: complianceGapSummary ?? null,
       decisionHash,
     },
   });

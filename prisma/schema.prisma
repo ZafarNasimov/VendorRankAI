@@ -109,6 +109,8 @@ model AiEvaluation {
   criterionScores Json     // { vendorId: { price: 85, delivery: 72, ... } }
   reasoning       String
   redFlags        Json     // [{ vendorId, flag, severity }]
+  vendorInsights  Json?    // { vendorId: { strengths, weaknesses, riskLevel, summaryNote } }
+  whyTopVendorWon String?  // Structured explanation of why top vendor was selected
   confidenceNotes String?
   evaluationHash  String   // SHA-256 of the full evaluation JSON
   createdAt       DateTime @default(now())
@@ -125,6 +127,10 @@ model ProcurementDecision {
   selectedVendorId      String
   overrideUsed          Boolean  @default(false)
   overrideReason        String?
+  overrideRiskLevel     String?  // "LOW" | "MEDIUM" | "HIGH" — computed risk of override
+  overrideRiskReasons   Json?    // string[] — reasons driving the risk level
+  scoreGap              Float?   // AI top score minus selected vendor score
+  complianceGapSummary  String?  // Plain-language summary of compliance difference
   decisionHash          String   // SHA-256 of decision record
   finalizedAt           DateTime?
   createdAt             DateTime @default(now())

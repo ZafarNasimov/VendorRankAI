@@ -16,3 +16,69 @@ body {
 ::-webkit-scrollbar-track { background: #f1f5f9; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ── Print / PDF styles ──────────────────────────────────────────────────── */
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  body {
+    background: white !important;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  /* Hide navigation chrome */
+  nav, header, .print\:hidden, [data-print-hide] { display: none !important; }
+
+  /* Page setup */
+  @page {
+    size: A4 portrait;
+    margin: 15mm 18mm 20mm 18mm;
+  }
+
+  @page :first {
+    margin-top: 10mm;
+  }
+
+  /* Avoid page breaks inside key elements */
+  .report-section,
+  table,
+  .avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Add page break before major sections */
+  .page-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  /* Table styles for print */
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #e2e8f0; padding: 6pt 8pt; }
+  thead { background: #f1f5f9 !important; }
+
+  /* Ensure backgrounds print */
+  .bg-slate-900 { background-color: #0f172a !important; color: white !important; }
+  .bg-purple-600, .bg-purple-700 { background-color: #7c3aed !important; color: white !important; }
+  .bg-emerald-50 { background-color: #ecfdf5 !important; }
+  .bg-amber-50 { background-color: #fffbeb !important; }
+  .bg-red-50 { background-color: #fef2f2 !important; }
+  .bg-teal-50 { background-color: #f0fdfa !important; }
+  .bg-blue-50 { background-color: #eff6ff !important; }
+
+  /* Footer on every page */
+  .report-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    font-size: 8pt;
+    color: #94a3b8;
+    border-top: 1px solid #e2e8f0;
+    padding: 4pt 18mm;
+    display: flex;
+    justify-content: space-between;
+  }
+}

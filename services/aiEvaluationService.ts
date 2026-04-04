@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
-import type { VendorProposal, CriteriaWeights, VendorRankEntry, RedFlag } from "@/types/tender";
+import type { VendorProposal, CriteriaWeights, VendorRankEntry, RedFlag, VendorInsight } from "@/types/tender";
 import { scoreVendors } from "./procurementScoringService";
 
 const SYSTEM_PROMPT = `You are a neutral procurement evaluation assistant for public-sector organizations.
@@ -33,6 +33,8 @@ interface AiEvaluationResult {
   criterionScores: Record<string, Record<string, number>>;
   reasoning: string;
   redFlags: RedFlag[];
+  vendorInsights: Record<string, VendorInsight>;
+  whyTopVendorWon: string;
   confidenceNotes: string;
 }
 
@@ -115,6 +117,8 @@ export async function evaluateVendorsWithAI(
       criterionScores: buildCriterionScoresMap(mergedRanking),
       reasoning: parsed.reasoning ?? "AI evaluation complete.",
       redFlags: parsed.redFlags ?? [],
+      vendorInsights: parsed.vendorInsights ?? {},
+      whyTopVendorWon: parsed.whyTopVendorWon ?? "",
       confidenceNotes: parsed.confidenceNotes ?? "",
     };
   } catch (err) {
@@ -207,6 +211,15 @@ Return a JSON object with this EXACT schema:
     }
   ],
   "reasoning": "<3-5 paragraphs: (1) overall recommendation with justification referencing specific data, (2) key differentiators between vendors, (3) risk analysis and concerns, (4) tradeoffs the procurement committee should weigh>",
+  "whyTopVendorWon": "<2-3 sentences explaining the specific reasons the top vendor outperformed others — reference actual scores, prices, compliance status, and delivery timelines>",
+  "vendorInsights": {
+    "<vendorId>": {
+      "strengths": ["<specific strength 1 with data>", "<specific strength 2>"],
+      "weaknesses": ["<specific weakness 1 with data>", "<specific weakness 2>"],
+      "riskLevel": "LOW|MEDIUM|HIGH",
+      "summaryNote": "<1-2 sentence explanation of why this vendor ranked where it did, referencing specific numbers>"
+    }
+  },
   "redFlags": [
     {
       "vendorId": "<id>",
@@ -217,7 +230,7 @@ Return a JSON object with this EXACT schema:
   "confidenceNotes": "<note on data completeness, missing fields that would strengthen the analysis, or assumptions made>"
 }
 
-All vendors must appear in ranking. RedFlags should be specific — cite actual numbers or missing fields. Empty array if no flags.`;
+All vendors must appear in ranking AND vendorInsights. RedFlags should be specific — cite actual numbers or missing fields. Empty array if no flags.`;
 }
 
 /**
@@ -313,11 +326,55 @@ function buildFallbackResult(
     });
   });
 
+  // Build fallback vendorInsights from objective data
+  const vendorInsights: Record<string, VendorInsight> = {};
+  for (const v of vendors) {
+    const sc = scored.find((s) => s.vendorId === v.id);
+    const strengths: string[] = [];
+    const weaknesses: string[] = [];
+
+    if (v.complianceStatus === "FULL") strengths.push("Full regulatory compliance — no compliance risk");
+    if (v.experienceScore >= 8) strengths.push(`High experience score (${v.experienceScore}/10)`);
+    if (v.deliveryDays <= 60) strengths.push(`Fast delivery timeline (${v.deliveryDays} days)`);
+    if (v.price < avgPrice) strengths.push(`Competitive price (${Math.round((1 - v.price / avgPrice) * 100)}% below field average)`);
+    if (v.warrantyScore >= 8) strengths.push(`Strong support offering (${v.warrantyScore}/10 warranty score)`);
+
+    if (v.complianceStatus === "PARTIAL") weaknesses.push("Only partial compliance — certifications must be verified");
+    if (v.complianceStatus === "NONE") weaknesses.push("No compliance certifications — HIGH RISK for regulated procurement");
+    if (v.experienceScore < 6) weaknesses.push(`Below-average experience score (${v.experienceScore}/10)`);
+    if (v.deliveryDays > 90) weaknesses.push(`Long delivery timeline (${v.deliveryDays} days)`);
+    if (v.price > avgPrice * 1.3) weaknesses.push(`Price ${Math.round((v.price / avgPrice - 1) * 100)}% above average`);
+    if (!v.meetsTechnicalRequirements) weaknesses.push("Does not meet stated technical requirements");
+    if (!v.sanctionsDeclaration) weaknesses.push("Missing sanctions declaration — required before award");
+
+    const riskLevel: "LOW" | "MEDIUM" | "HIGH" =
+      v.complianceStatus === "NONE" || !v.meetsTechnicalRequirements || !v.sanctionsDeclaration
+        ? "HIGH"
+        : v.complianceStatus === "PARTIAL" || v.price > avgPrice * 1.4
+        ? "MEDIUM"
+        : "LOW";
+
+    const rankEntry = ranking.find((r) => r.vendorId === v.id);
+    vendorInsights[v.id] = {
+      strengths: strengths.length > 0 ? strengths : ["No notable strengths identified from available data"],
+      weaknesses: weaknesses.length > 0 ? weaknesses : ["No notable weaknesses identified from available data"],
+      riskLevel,
+      summaryNote: `Ranked #${rankEntry?.rank ?? "?"} with a composite score of ${sc?.totalScore ?? "?"}/100 based on objective multi-criteria analysis.`,
+    };
+  }
+
+  const topVendor = vendors.find((v) => v.id === ranking[0]?.vendorId);
+  const whyTopVendorWon = topVendor
+    ? `${topVendor.companyName} achieved the highest composite score (${scoring[0]?.totalScore}/100) by performing consistently across the most heavily weighted criteria. ${topVendor.complianceStatus === "FULL" ? "Full compliance status eliminates regulatory risk. " : ""}Price of $${topVendor.price.toLocaleString()} ${topVendor.price < avgPrice ? "is below the field average, adding value competitiveness." : "is above average but justified by capability scores."}`
+    : "Top vendor selected based on highest composite weighted score.";
+
   return {
     ranking,
     criterionScores: buildCriterionScoresMap(ranking),
     reasoning,
     redFlags,
+    vendorInsights,
+    whyTopVendorWon,
     confidenceNotes:
       "Scores computed using objective normalization. Set OPENAI_API_KEY or ANTHROPIC_API_KEY to enable AI-generated critical analysis.",
   };

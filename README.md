@@ -41,10 +41,12 @@ Services:
   aiEvaluationService        → OpenAI / Anthropic (auto-detect from env keys)
   vendorAutofillService      → AI field extraction from uploaded documents
   documentExtractionService  → pdf-parse (PDF + plain text)
-  hederaConsensusService     → @hashgraph/sdk (HCS write)
+  hederaAgentService         → Agent Kit-style tool registry (high-level facade)
+  hederaConsensusService     → @hashgraph/sdk (HCS write — used by agentService)
   mirrorNodeService          → Mirror Node REST API (read)
   badgeService               → @hashgraph/sdk (HTS optional)
   hashingService             → SHA-256 (crypto module)
+  overrideRiskService        → deterministic override risk scoring
   procurementScoringService  → normalized weighted scoring
 ```
 
@@ -141,20 +143,90 @@ pnpm dev
 
 ---
 
+## Hedera Agent Kit
+
+VendorRank AI follows the **Hedera Agent Kit** pattern: a registry of composable "agent tools", each corresponding to one meaningful Hedera operation. The implementation lives in `services/hederaAgentService.ts`.
+
+### What Hedera Agent Kit provides
+
+[Hedera Agent Kit](https://github.com/hedera-dev/hedera-agent-kit) is a TypeScript library that wraps `@hashgraph/sdk` into a set of named, schema-validated tools that any AI agent framework (LangChain, Vercel AI SDK, OpenAI function calling) can invoke by name. Each tool takes a typed input, executes one Hedera operation, and returns a structured result.
+
+### How it maps to VendorRank AI
+
+| Agent Kit tool concept | VendorRank AI implementation | Hedera operation |
+|---|---|---|
+| `ensure_audit_topic` | `ensureAuditTopic()` | `TopicCreateTransaction` |
+| `record_tender_created` | `recordTenderCreated()` | `TopicMessageSubmitTransaction` |
+| `record_ai_ranking` | `recordAiRanking()` | `TopicMessageSubmitTransaction` |
+| `record_human_decision` | `recordHumanDecision()` | `TopicMessageSubmitTransaction` |
+| `record_decision_finalized` | `recordDecisionFinalized()` | `TopicMessageSubmitTransaction` |
+| `hts_mint_nft` | `mintReviewerBadge()` in `badgeService.ts` | `TokenMintTransaction` |
+| `mirror_get_topic_messages` | `getMessages()` in `mirrorNodeService.ts` | Mirror Node REST |
+
+### Why this architecture matters
+
+Each tool function in `hederaAgentService.ts` is:
+- **Stateless** — no shared mutable state between calls
+- **Schema-typed** — input interfaces enforce what the AI must supply
+- **Swap-compatible** — the function signatures are intentionally compatible with Agent Kit's tool registry, so dropping in `HederaAgentKit.executeTool("record_tender_created", input)` replaces the direct SDK call with no changes to callers
+
+This means the AI evaluation agent (in `aiEvaluationService.ts`) could call `recordAiRanking` directly as part of its tool set — the evaluation and the Hedera write happen in the same agent turn, ensuring the on-chain record is always in sync with the evaluation result.
+
+---
+
+## Security
+
+### Private key handling
+- `HEDERA_PRIVATE_KEY` and `HEDERA_ACCOUNT_ID` are read only in `hederaConsensusService.ts` and `badgeService.ts` — both server-only modules never imported into client components
+- `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` are consumed only in `aiEvaluationService.ts` and `vendorAutofillService.ts` — server-side API routes; never exposed to the browser
+- No API keys are interpolated into client bundles. The `NEXT_PUBLIC_` prefix is used only for the Mirror Node URL, which is a public endpoint
+
+### Document upload validation
+`app/api/documents/extract/route.ts` enforces:
+- **MIME type allowlist**: only `application/pdf` and `text/plain` are accepted (HTTP 415 otherwise)
+- **File size cap**: 10 MB hard limit (HTTP 413 otherwise)
+- Files are read into a `Buffer` in-process; they are never written to disk or stored
+- Extracted text is truncated before being sent to the AI (`truncateForAI` in `documentExtractionService.ts`) to prevent prompt injection via oversized documents
+
+### Input validation
+All API routes use Zod schemas at the boundary:
+- `validators/decisionSchema.ts` — decision recording and finalization
+- Field-level length limits prevent oversized inputs from reaching the database or Hedera messages
+
+### Role awareness and override accountability
+- Override risk is assessed deterministically server-side from `overrideRiskService.ts` — the client cannot supply a risk level that overrides the computed one
+- The override reason and computed risk level (`LOW`/`MEDIUM`/`HIGH`) are written to Hedera HCS, creating a non-deletable accountability record
+- HIGH-risk overrides require longer justification (2000-char limit) and show a red warning UI — the reviewer is visually informed before confirming
+
+### Audit integrity
+- SHA-256 hashes of the evaluation JSON and decision payload are computed in `hashingService.ts` before being stored in the database and written to HCS
+- Any post-hoc modification of the database records would produce a hash mismatch detectable by re-hashing the stored JSON
+- The Hedera sequence number provides ordering guarantees: events cannot be inserted between existing messages
+
+---
+
 ## Key Features
 
 ### Document Upload + AI Autofill
 Vendors can upload a PDF or plain text proposal document. The AI extracts structured fields (company name, price, delivery, certifications, etc.) with per-field confidence levels (`high`/`medium`/`low`). Extracted fields pre-fill the vendor form — humans review and confirm before saving.
 
-### Explainable AI Scoring
-Every vendor receives:
-- A weighted total score (0–100)
-- Per-criterion scores with brief explanations
-- Rank position with confidence
-- Red flags for mandatory requirement failures
-- Plain-English summary reasoning
+### Explainability Panel
+Every vendor receives a full enterprise-style breakdown:
+- A weighted total score (0–100) with per-criterion score bars
+- Per-vendor strengths and weaknesses extracted by the AI
+- Plain-English explanation of why the top vendor won (`whyTopVendorWon`)
+- Red flags for mandatory requirement failures (severity-tagged)
+- Full AI reasoning (collapsible), compliance failures, and decision support guidance
 
 Scoring weights are set by the procurement team before evaluation — the AI cannot change them.
+
+### Override Risk Detection (Scandal Mode)
+When a reviewer selects a vendor that differs from the AI recommendation, the system:
+- Computes a `LOW`/`MEDIUM`/`HIGH` override risk score deterministically from vendor data
+- Shows a side-by-side comparison table (AI pick vs. human pick) across all criteria
+- Lists numbered risk reasons (score gap, compliance mismatch, technical failure, etc.)
+- Requires a longer written justification for HIGH-risk overrides
+- Records the risk level and reasons permanently on Hedera HCS
 
 ### Hash-Chained Audit Trail
 The SHA-256 hash of the full evaluation JSON is included in the `AI_RANKING_GENERATED` HCS message. The SHA-256 hash of the decision (vendor ID + override flag + reason + timestamp) is included in `HUMAN_DECISION_RECORDED`. This creates an off-chain/on-chain link: you can verify the evaluation or decision hasn't changed by re-hashing.
@@ -162,14 +234,18 @@ The SHA-256 hash of the full evaluation JSON is included in the `AI_RANKING_GENE
 ### Override Enforcement
 The UI requires a written justification when the human selects a vendor that differs from the AI recommendation. This text is mandatory, non-skippable, and written directly into the HCS message — not just stored in the application database.
 
-### Print-Ready Report
-The `/report` page generates a formatted procurement decision document with:
-- Tender metadata and financial terms
-- Evaluation criteria and weights
-- Full vendor comparison with scores
-- Decision record with override justification (if any)
-- Integrity section with SHA-256 hashes and Hedera transaction references
-- Audit log summary
+### Beautiful Printable Decision Report
+The `/report` page generates a formal procurement memo (8 sections) with:
+1. Cover page with dark gov-style header, status badge, and override risk badge
+2. Tender summary — procurement metadata, financial terms, mandatory certifications
+3. Evaluation criteria — visual weight bars
+4. Vendor comparison — headline score cards + full table with compliance badges
+5. AI evaluation summary — `whyTopVendorWon`, per-vendor strengths/weaknesses, evaluation hash
+6. Procurement decision — override banner (color-coded by risk level), AI vs human comparison, justification, risk reasons
+7. Risk & compliance notes — red flags with severity tags
+8. Hedera audit trail — events table + integrity hash, HashScan links, signature blocks
+
+**Download as PDF** via the "Download PDF" button (html2canvas + jsPDF multi-page), or use the browser print dialog. Print CSS ensures backgrounds, table borders, and color-coded sections render correctly on paper.
 
 ---
 
@@ -196,14 +272,16 @@ components/
   ui/                 Card, Button, Badge, StatusChip, ScoreBar, PrintButton
 
 services/
-  aiEvaluationService.ts
-  vendorAutofillService.ts
-  documentExtractionService.ts
-  hederaConsensusService.ts
-  mirrorNodeService.ts
-  badgeService.ts
-  hashingService.ts
-  procurementScoringService.ts
+  hederaAgentService.ts      Agent Kit-compatible tool registry (high-level facade)
+  hederaConsensusService.ts  Raw @hashgraph/sdk HCS calls
+  mirrorNodeService.ts       Mirror Node REST reads
+  badgeService.ts            HTS NFT minting
+  aiEvaluationService.ts     AI scoring + vendor insights
+  vendorAutofillService.ts   AI field extraction from document text
+  documentExtractionService.ts  pdf-parse wrapper
+  overrideRiskService.ts     Deterministic override risk assessment
+  hashingService.ts          SHA-256 hashing
+  procurementScoringService.ts  Weighted normalized scoring
 
 types/
   tender.ts           VendorProposal, AiEvaluation, CriteriaWeights, etc.

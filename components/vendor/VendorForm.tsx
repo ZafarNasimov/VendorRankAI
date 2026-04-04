@@ -17,7 +17,51 @@ import {
   ChevronRight,
   X,
   FileUp,
+  Zap,
+  Unlock,
 } from "lucide-react";
+
+// ─── AI extraction field indicator ────────────────────────────────────────────
+
+// Fields that are considered "AI-owned" when extracted from documents
+const AI_LOCKABLE_FIELDS = new Set([
+  "experienceScore", "complianceStatus", "warrantyScore",
+  "proposalSummary", "meetsTechnicalRequirements",
+]);
+
+function AiExtractedBadge({
+  fieldKey,
+  aiExtracted,
+  overridden,
+  onOverride,
+}: {
+  fieldKey: string;
+  aiExtracted: Set<string>;
+  overridden: Set<string>;
+  onOverride: (key: string) => void;
+}) {
+  if (!aiExtracted.has(fieldKey)) return null;
+  if (overridden.has(fieldKey)) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+        <Unlock className="w-3 h-3" /> Overriding AI extraction
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+      <Zap className="w-3 h-3" />
+      AI extracted
+      <button
+        type="button"
+        onClick={() => onOverride(fieldKey)}
+        className="text-purple-500 hover:text-purple-700 underline ml-0.5"
+      >
+        Override
+      </button>
+    </span>
+  );
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -98,26 +142,28 @@ function Toggle({ checked, onChange, label, desc }: {
   );
 }
 
-function ScoreSelector({ label, hint, value, onChange }: {
+function ScoreSelector({ label, hint, value, onChange, locked = false }: {
   label: string; hint?: string; value: string;
-  onChange: (v: string) => void;
+  onChange: (v: string) => void; locked?: boolean;
 }) {
   const num = parseFloat(value) || 0;
   return (
     <Field label={label} hint={hint}>
-      <div className="flex items-center gap-3">
+      <div className={`flex items-center gap-3 ${locked ? "opacity-60 pointer-events-none select-none" : ""}`}>
         <input
           type="range" min="0" max="10" step="0.5"
           value={num}
           onChange={(e) => onChange(e.target.value)}
-          className="flex-1 accent-blue-600"
+          disabled={locked}
+          className="flex-1 accent-blue-600 disabled:opacity-60"
         />
         <div className="flex items-center gap-1 w-20">
           <input
             type="number" min="0" max="10" step="0.5"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-14 border border-slate-300 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={locked}
+            className="w-14 border border-slate-300 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400"
           />
           <span className="text-sm text-slate-500">/10</span>
         </div>
@@ -145,12 +191,33 @@ export function VendorForm({ tenderId, onAdded }: VendorFormProps) {
   const [section, setSection] = useState(0); // 0–4
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ ...DEFAULT_FORM });
+  // Track which fields were populated by AI document extraction
+  const [aiExtracted, setAiExtracted] = useState<Set<string>>(new Set());
+  const [overridden, setOverridden] = useState<Set<string>>(new Set());
+
+  function handleOverride(fieldKey: string) {
+    setOverridden((prev) => new Set([...prev, fieldKey]));
+  }
+
+  function isFieldLocked(fieldKey: string) {
+    return AI_LOCKABLE_FIELDS.has(fieldKey) && aiExtracted.has(fieldKey) && !overridden.has(fieldKey);
+  }
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
   function applyAutofill(draft: FlatVendorDraft) {
+    // Track which AI-lockable fields were extracted
+    const extracted = new Set<string>();
+    for (const field of AI_LOCKABLE_FIELDS) {
+      if (draft[field as keyof FlatVendorDraft] !== undefined) {
+        extracted.add(field);
+      }
+    }
+    setAiExtracted(extracted);
+    setOverridden(new Set()); // reset overrides on new extraction
+
     setForm((f) => ({
       ...f,
       ...(draft.companyName        !== undefined && { companyName: draft.companyName }),
@@ -189,6 +256,8 @@ export function VendorForm({ tenderId, onAdded }: VendorFormProps) {
     setShowUpload(false);
     setSection(0);
     setForm({ ...DEFAULT_FORM });
+    setAiExtracted(new Set());
+    setOverridden(new Set());
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -511,12 +580,19 @@ export function VendorForm({ tenderId, onAdded }: VendorFormProps) {
                 <span className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Section C — Capability &amp; Experience</span>
               </div>
 
-              <ScoreSelector
-                label="Experience Score (used in AI evaluation)"
-                hint="Rate this vendor's relevant experience and track record (0 = none, 10 = exceptional)"
-                value={form.experienceScore}
-                onChange={(v) => set("experienceScore", v)}
-              />
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-slate-700">Experience Score (used in AI evaluation)</span>
+                  <AiExtractedBadge fieldKey="experienceScore" aiExtracted={aiExtracted} overridden={overridden} onOverride={handleOverride} />
+                </div>
+                <ScoreSelector
+                  label=""
+                  hint="Rate this vendor's relevant experience and track record (0 = none, 10 = exceptional)"
+                  value={form.experienceScore}
+                  onChange={(v) => !isFieldLocked("experienceScore") && set("experienceScore", v)}
+                  locked={isFieldLocked("experienceScore")}
+                />
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Field label="Years in Business">
@@ -573,8 +649,11 @@ export function VendorForm({ tenderId, onAdded }: VendorFormProps) {
               </div>
 
               <div>
-                <p className="text-sm font-medium text-slate-700 mb-2">Overall Compliance Status</p>
-                <div className="flex gap-3">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-slate-700">Overall Compliance Status</p>
+                  <AiExtractedBadge fieldKey="complianceStatus" aiExtracted={aiExtracted} overridden={overridden} onOverride={handleOverride} />
+                </div>
+                <div className={`flex gap-3 ${isFieldLocked("complianceStatus") ? "opacity-60 pointer-events-none" : ""}`}>
                   {(["FULL", "PARTIAL", "NONE"] as const).map((s) => (
                     <label
                       key={s}
@@ -589,7 +668,8 @@ export function VendorForm({ tenderId, onAdded }: VendorFormProps) {
                       <input
                         type="radio" className="sr-only" value={s}
                         checked={form.complianceStatus === s}
-                        onChange={() => set("complianceStatus", s)}
+                        onChange={() => !isFieldLocked("complianceStatus") && set("complianceStatus", s)}
+                        disabled={isFieldLocked("complianceStatus")}
                       />
                       {s === "FULL" ? "Compliant" : s === "PARTIAL" ? "Partially Compliant" : "Non-Compliant"}
                     </label>
@@ -640,12 +720,19 @@ export function VendorForm({ tenderId, onAdded }: VendorFormProps) {
                 <span className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Section E — Technical Fit &amp; Proposal</span>
               </div>
 
-              <ScoreSelector
-                label="Support & Warranty Score (used in AI evaluation)"
-                hint="Rate the quality of post-delivery support and warranty offering (0 = poor, 10 = excellent)"
-                value={form.warrantyScore}
-                onChange={(v) => set("warrantyScore", v)}
-              />
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-slate-700">Support & Warranty Score (used in AI evaluation)</span>
+                  <AiExtractedBadge fieldKey="warrantyScore" aiExtracted={aiExtracted} overridden={overridden} onOverride={handleOverride} />
+                </div>
+                <ScoreSelector
+                  label=""
+                  hint="Rate the quality of post-delivery support and warranty offering (0 = poor, 10 = excellent)"
+                  value={form.warrantyScore}
+                  onChange={(v) => !isFieldLocked("warrantyScore") && set("warrantyScore", v)}
+                  locked={isFieldLocked("warrantyScore")}
+                />
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Field label="Support Period" hint="Duration of included support post-delivery">
@@ -684,14 +771,22 @@ export function VendorForm({ tenderId, onAdded }: VendorFormProps) {
                 />
               </Field>
 
-              <Field label="Proposal Summary" hint="Key differentiators and overall value proposition">
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-medium text-slate-700">
+                    Proposal Summary
+                  </label>
+                  <AiExtractedBadge fieldKey="proposalSummary" aiExtracted={aiExtracted} overridden={overridden} onOverride={handleOverride} />
+                </div>
+                <p className="text-xs text-slate-400 mb-1.5">Key differentiators and overall value proposition</p>
                 <textarea
                   rows={4} value={form.proposalSummary}
-                  onChange={(e) => set("proposalSummary", e.target.value)}
-                  className={TEXTAREA}
+                  onChange={(e) => !isFieldLocked("proposalSummary") && set("proposalSummary", e.target.value)}
+                  disabled={isFieldLocked("proposalSummary")}
+                  className={`${TEXTAREA} disabled:bg-slate-50 disabled:text-slate-400`}
                   placeholder="Summarize the vendor's approach, unique strengths, and why they are well-suited for this tender..."
                 />
-              </Field>
+              </div>
             </div>
           )}
         </CardBody>

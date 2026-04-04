@@ -6,6 +6,7 @@
 - Browser open to the tenders list
 - Have a sample vendor PDF ready (any text-based PDF works — a simple supplier profile or pricing sheet)
 - Optional: Hedera testnet configured with `HEDERA_TOPIC_ID`
+- **Scandal Mode tender pre-seeded:** `pnpm db:seed` loads the "National Health Portal Infrastructure — SCANDAL MODE DEMO" tender showing a HIGH-risk override (AI recommends ClearPath Health Cloud, human picks Meridian Digital Ltd — the worst-scoring vendor)
 
 ---
 
@@ -80,7 +81,7 @@
 
 ---
 
-## STEP 5 — AI Evaluation (45 seconds)
+## STEP 5 — AI Evaluation + Explainability Panel (60 seconds)
 
 **Navigate to:** `/tenders/[id]/evaluate`
 
@@ -90,9 +91,11 @@
 
 **When results appear:**
 
-**Point to the score table:** "Each vendor gets a per-criterion score and a weighted total."
+**Point to the top vendor spotlight:** "The AI explains in plain English *why* the top vendor won — not just a number, but reasoning grounded in the data."
 
-**Point to the top vendor:** "Vendor 1 scores highest on the weighted model — balanced across all criteria."
+**Expand a vendor card:** "Each vendor gets a strengths/weaknesses breakdown. Green bars are where they performed well. Red flags are mandatory failures."
+
+**Point to the weighted score table:** "Per-criterion scores, weighted contribution, and color-coded bars. You can see exactly how the final score was constructed."
 
 **Point to QuickHost's red flag:** "Partial compliance flagged here. For a government contract with mandatory ISO 27001 and SOC 2 requirements, this is a disqualifying finding."
 
@@ -100,25 +103,39 @@
 
 ---
 
-## STEP 6 — Human Override (30 seconds)
+## STEP 6 — Human Override + Scandal Mode (60 seconds)
 
 **Navigate to:** `/tenders/[id]/decision`
 
-**Say:** "The AI recommends Vendor 1. But I'm going to demonstrate an override."
+**Say:** "The AI recommends Vendor 1. But I'm going to demonstrate an override — and specifically show the Scandal Mode detector."
 
 **Select Vendor 2 (Stratus Systems)**
 
-**A justification box appears automatically**
+**The Override Risk panel appears**
 
-**Say:** "Notice the form requires a written justification — it's mandatory, not optional. This text will go directly into the Hedera message."
+**Say:** "The moment I select a different vendor, the system computes an override risk score in real time. This one is LOW — Stratus is a reasonable alternative."
 
-**Type:** `Stratus Systems holds an existing approved vendor relationship with demonstrated on-site delivery in this region. Budget constraints for FY2025 favor the lower-cost option given equivalent compliance posture.`
+**Point to the comparison table:** "This table puts the AI pick and my pick side by side across every scoring dimension so there's no ambiguity about what I'm choosing."
+
+**(Optional — for maximum impact):** Navigate to the pre-seeded Scandal Mode tender instead
+
+**Say:** "Let me show you the extreme case — this tender is pre-seeded with a worst-case scenario."
+
+**On the Scandal Mode tender, navigate to decision, the risk panel shows HIGH in red**
+
+**Say:** "High risk. The system is telling the reviewer — loudly — that they're about to select a vendor with a 54-point score gap, partial compliance, no sanctions declaration, and the highest price. All six risk reasons are listed."
+
+**Point to the red "HIGH RISK OVERRIDE" banner:** "This banner, this justification requirement, and this entire risk assessment go on Hedera permanently. The accountability is on-chain."
+
+**Back on the main tender — Select Vendor 2 (Stratus Systems)**
+
+**Type justification:** `Stratus Systems holds an existing approved vendor relationship with demonstrated on-site delivery in this region. Budget constraints for FY2025 favor the lower-cost option given equivalent compliance posture.`
 
 **Set reviewer name:** `Sarah Chen` / Role: `Head of Procurement`
 
 **Click "Record Decision & Continue"**
 
-**Say:** "The override reason — Sarah's name, her role, and the full justification — are now in an HCS message on Hedera. No one can delete or edit that."
+**Say:** "The override reason, risk level, and the full justification are now in an HCS message on Hedera. No one can delete or edit that."
 
 ---
 
@@ -136,15 +153,22 @@
 
 ---
 
-## STEP 8 — View Report (20 seconds)
+## STEP 8 — View Report + PDF Download (30 seconds)
 
 **Click "View Report"**
 
-**Say:** "This is the official procurement decision document — printable, self-contained. It includes the tender details, vendor comparison, scores, the AI recommendation, the override justification, and the Hedera transaction hashes for verification."
+**Say:** "This is the official procurement decision document — 8 sections, formal procurement memo style. It's designed to be submitted to an auditor or published as part of the public procurement record."
 
-**Scroll through** the 7 sections quickly.
+**Scroll through the sections:**
+- "Section 1: tender metadata. Section 2: criteria weights — set before evaluation, immutable."
+- "Section 3: full vendor comparison table."
+- "Section 4: AI evaluation — including the plain-English explanation of why the top vendor won."
+- "Section 5: the decision — override banner color-coded by risk level, AI vs human comparison, justification."
+- "Section 6: red flags. Section 7: Hedera audit trail with transaction IDs. Section 8: signature blocks."
 
-**Say:** "This is what you submit to the auditor. Every claim in this document is backed by an on-chain hash."
+**Click "Download PDF"**
+
+**Say:** "This generates a real PDF client-side — not a browser screenshot, but a properly formatted multi-page document. This is what goes in the official file."
 
 ---
 
@@ -175,3 +199,32 @@
 ## Closing Line
 
 "VendorRank AI uses HCS for the immutable audit trail, Mirror Node to read that trail independently, and HTS for reviewer credentials. No Solidity. No smart contracts. Just the tools Hedera built for this exact use case — ordered, timestamped, tamper-evident records."
+
+---
+
+## For Judges — Technical Architecture Notes
+
+### Hedera Agent Kit pattern
+
+`services/hederaAgentService.ts` implements a **Hedera Agent Kit-compatible tool registry**:
+
+```typescript
+// Each function is a typed "agent tool" — stateless, schema-validated, swap-compatible
+recordTenderCreated(topicId, { tenderId, title, criteriaWeights, ... })
+recordAiRanking(topicId, { topVendorId, evaluationHash, rankedVendors, ... })
+recordHumanDecision(topicId, { selectedVendorId, overrideUsed, overrideRiskLevel, ... })
+recordDecisionFinalized(topicId, { reviewerName, finalDecisionHash })
+```
+
+These functions have the same semantics as Hedera Agent Kit tool calls. Replacing the body with `HederaAgentKit.executeTool(toolName, input)` requires no changes to callers. The AI evaluation agent (`aiEvaluationService.ts`) could call `recordAiRanking` in the same agent turn that produces the evaluation — writing the on-chain record atomically with the decision.
+
+### Override risk — why it matters
+
+The `assessOverrideRisk` function in `overrideRiskService.ts` runs **deterministically** from vendor data. The client cannot manipulate the risk level — it is computed server-side, written to the database, and written to Hedera HCS alongside the override reason. A corrupt procurement officer cannot record a LOW risk assessment for a HIGH risk override.
+
+### Security model
+
+- No private keys in client bundles (`NEXT_PUBLIC_` prefix only on the Mirror Node URL)
+- Document uploads: MIME type allowlist + 10 MB cap + in-memory only (no disk writes)
+- All API inputs validated with Zod at the route boundary
+- SHA-256 hash chain: evaluation hash → decision hash → finalization hash, all written to HCS

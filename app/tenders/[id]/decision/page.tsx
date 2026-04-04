@@ -10,8 +10,10 @@ import { Button } from "@/components/ui/Button";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { Badge } from "@/components/ui/Badge";
 import { ScoreBar } from "@/components/ui/ScoreBar";
+import { OverrideRiskPanel } from "@/components/decision/OverrideRiskPanel";
+import { assessOverrideRisk } from "@/services/overrideRiskService";
 import { formatCurrency } from "@/lib/utils";
-import { Zap, UserCheck, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Zap, UserCheck, CheckCircle2 } from "lucide-react";
 import type { VendorProposal, AiEvaluation, VendorRankEntry } from "@/types/tender";
 
 interface TenderData {
@@ -49,7 +51,6 @@ export default function DecisionPage({
       .then((r) => r.json())
       .then((data) => {
         setTender(data);
-        // Pre-select AI recommendation
         const topId = (data.evaluation?.ranking as VendorRankEntry[])?.[0]?.vendorId;
         if (topId && !data.decision) {
           setSelectedVendorId(topId);
@@ -79,12 +80,24 @@ export default function DecisionPage({
   const isOverride = selectedVendorId !== aiTopId && !!selectedVendorId;
   const isFinalized = !!tender.decision?.finalizedAt;
 
+  // Compute override risk assessment when override is active
+  const aiTopVendor = tender.vendors.find((v) => v.id === aiTopId);
+  const selectedVendor = tender.vendors.find((v) => v.id === selectedVendorId);
+  const overrideAssessment =
+    isOverride && aiTopVendor && selectedVendor
+      ? assessOverrideRisk(
+          aiTopVendor,
+          selectedVendor,
+          rankMap.get(aiTopId),
+          rankMap.get(selectedVendorId)
+        )
+      : null;
+
   async function handleSubmit() {
     if (!selectedVendorId) {
       toast.error("Please select a vendor");
       return;
     }
-
     if (isOverride && !overrideReason.trim()) {
       toast.error("An override reason is required when not following the AI recommendation");
       return;
@@ -101,6 +114,11 @@ export default function DecisionPage({
           overrideUsed: isOverride,
           overrideReason: isOverride ? overrideReason : undefined,
           reviewerName: reviewerName.trim() || reviewerRole,
+          // Pass risk assessment data
+          overrideRiskLevel: overrideAssessment?.riskLevel ?? null,
+          overrideRiskReasons: overrideAssessment?.reasons ?? null,
+          scoreGap: overrideAssessment?.scoreGap ?? null,
+          complianceGapSummary: overrideAssessment?.complianceGapSummary ?? null,
         }),
       });
 
@@ -131,8 +149,8 @@ export default function DecisionPage({
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Human Decision Review</h1>
         <p className="text-slate-500 mt-1">
-          Review the AI recommendation and make your final vendor selection. All
-          decisions are logged to Hedera.
+          Review the AI recommendation and make your final vendor selection.
+          All decisions are logged to Hedera.
         </p>
       </div>
 
@@ -220,9 +238,7 @@ export default function DecisionPage({
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                     <div>
                       <p className="text-xs text-slate-400">Price</p>
-                      <p className="font-medium text-slate-700">
-                        {formatCurrency(vendor.price)}
-                      </p>
+                      <p className="font-medium text-slate-700">{formatCurrency(vendor.price)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-slate-400">Delivery</p>
@@ -260,27 +276,70 @@ export default function DecisionPage({
         </CardBody>
       </Card>
 
-      {/* Override reason */}
+      {/* ── SCANDAL MODE / Override Risk Panel ── */}
+      {isOverride && overrideAssessment && aiTopVendor && selectedVendor && (
+        <div className="mb-6">
+          <OverrideRiskPanel
+            aiTopVendor={aiTopVendor}
+            selectedVendor={selectedVendor}
+            aiTopEntry={rankMap.get(aiTopId)}
+            selectedEntry={rankMap.get(selectedVendorId)}
+            assessment={overrideAssessment}
+          />
+        </div>
+      )}
+
+      {/* Override justification — always required when override is detected */}
       {isOverride && !isFinalized && (
-        <Card className="mb-6 border-amber-200 bg-amber-50/50">
+        <Card className={`mb-6 ${
+          overrideAssessment?.riskLevel === "HIGH"
+            ? "border-red-300 bg-red-50/50"
+            : "border-amber-200 bg-amber-50/50"
+        }`}>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-600" />
               <h3 className="font-semibold text-slate-800">Override Justification Required</h3>
+              {overrideAssessment && (
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+                  overrideAssessment.riskLevel === "HIGH"
+                    ? "bg-red-100 text-red-800 border-red-300"
+                    : overrideAssessment.riskLevel === "MEDIUM"
+                    ? "bg-orange-100 text-orange-800 border-orange-300"
+                    : "bg-amber-100 text-amber-800 border-amber-300"
+                }`}>
+                  Risk: {overrideAssessment.riskLevel}
+                </span>
+              )}
             </div>
           </CardHeader>
           <CardBody>
-            <p className="text-sm text-amber-700 mb-3">
+            <p className={`text-sm mb-3 ${
+              overrideAssessment?.riskLevel === "HIGH" ? "text-red-700" : "text-amber-700"
+            }`}>
               You are selecting a vendor that differs from the AI recommendation.
-              A written justification is required for the audit record.
+              {overrideAssessment?.riskLevel === "HIGH" && (
+                <strong> This override carries HIGH risk — a detailed justification is mandatory.</strong>
+              )}{" "}
+              Your written justification will be permanently recorded in the Hedera audit trail.
             </p>
             <textarea
               value={overrideReason}
               onChange={(e) => setOverrideReason(e.target.value)}
-              rows={4}
-              className="w-full border border-amber-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white resize-none"
-              placeholder="Explain why you are overriding the AI recommendation (e.g., prior relationship quality, strategic considerations, additional context not captured in the scoring...)."
+              rows={5}
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 bg-white resize-none ${
+                overrideAssessment?.riskLevel === "HIGH"
+                  ? "border-red-300 focus:ring-red-400"
+                  : "border-amber-300 focus:ring-amber-400"
+              }`}
+              placeholder={
+                overrideAssessment?.riskLevel === "HIGH"
+                  ? "HIGH RISK OVERRIDE: Provide a detailed justification including specific business reasons, mitigating factors, and accountability acknowledgment..."
+                  : "Explain why you are overriding the AI recommendation (e.g., prior relationship quality, strategic considerations, additional context not captured in scoring)..."
+              }
             />
+            <p className="text-xs text-slate-400 mt-1.5">
+              {overrideReason.length} characters · Minimum detail recommended for audit defensibility
+            </p>
           </CardBody>
         </Card>
       )}
@@ -294,9 +353,7 @@ export default function DecisionPage({
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
-                  Name
-                </label>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Name</label>
                 <input
                   type="text"
                   value={reviewerName}
@@ -306,9 +363,7 @@ export default function DecisionPage({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
-                  Role
-                </label>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Role</label>
                 <select
                   value={reviewerRole}
                   onChange={(e) => setReviewerRole(e.target.value)}
@@ -334,10 +389,13 @@ export default function DecisionPage({
             <Button
               onClick={handleSubmit}
               loading={submitting}
-              disabled={!selectedVendorId}
+              disabled={!selectedVendorId || (isOverride && !overrideReason.trim())}
               size="lg"
+              variant={overrideAssessment?.riskLevel === "HIGH" ? "danger" : "primary"}
             >
-              Record Decision & Continue →
+              {isOverride
+                ? `Record Override Decision →`
+                : "Record Decision & Continue →"}
             </Button>
           </div>
         </>

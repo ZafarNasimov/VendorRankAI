@@ -112,6 +112,13 @@ export interface RedFlag {
   severity: "LOW" | "MEDIUM" | "HIGH";
 }
 
+export interface VendorInsight {
+  strengths: string[];
+  weaknesses: string[];
+  riskLevel: "LOW" | "MEDIUM" | "HIGH";
+  summaryNote: string;
+}
+
 export interface AiEvaluation {
   id: string;
   tenderId: string;
@@ -119,6 +126,8 @@ export interface AiEvaluation {
   criterionScores: Record<string, Record<string, number>>;
   reasoning: string;
   redFlags: RedFlag[];
+  vendorInsights?: Record<string, VendorInsight> | null;
+  whyTopVendorWon?: string | null;
   confidenceNotes?: string | null;
   evaluationHash: string;
   createdAt: Date | string;
@@ -131,6 +140,10 @@ export interface ProcurementDecision {
   selectedVendorId: string;
   overrideUsed: boolean;
   overrideReason?: string | null;
+  overrideRiskLevel?: "LOW" | "MEDIUM" | "HIGH" | null;
+  overrideRiskReasons?: string[] | null;
+  scoreGap?: number | null;
+  complianceGapSummary?: string | null;
   decisionHash: string;
   finalizedAt?: Date | string | null;
   createdAt: Date | string;
