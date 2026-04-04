@@ -11,12 +11,11 @@ export async function extractTextFromBuffer(
   }
 
   if (mimeType === "application/pdf") {
-    // Dynamic import keeps this out of the client bundle.
-    // pdf-parse is listed in serverExternalPackages in next.config.ts.
-    const mod = await import("pdf-parse");
-    // pdf-parse v2 exports as ESM default or CJS module.exports
-    const pdfParse = (mod as unknown as { default: (buf: Buffer) => Promise<{ text: string }> }).default ?? mod;
-    const result = await (pdfParse as (buf: Buffer) => Promise<{ text: string }>)(buffer);
+    // pdf-parse v2: class-based API { PDFParse }
+    // Listed in serverExternalPackages in next.config.ts to keep it server-side only.
+    const { PDFParse } = await import("pdf-parse");
+    const parser = new PDFParse({ data: buffer });
+    const result = await parser.getText();
     return result.text ?? "";
   }
 
