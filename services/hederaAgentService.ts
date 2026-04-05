@@ -68,7 +68,8 @@ export async function recordTenderCreated(
   const payload: HcsEventPayload = {
     eventType: "TENDER_CREATED",
     tenderId: input.tenderId,
-    timestamp: new Date().toISOString(),
+    recordedBy: "Procurement Officer",
+    recordedAt: new Date().toISOString(),
     data: {
       title: input.title,
       referenceNumber: input.referenceNumber,
@@ -111,7 +112,8 @@ export async function recordAiRanking(
   const payload: HcsEventPayload = {
     eventType: "AI_RANKING_GENERATED",
     tenderId: input.tenderId,
-    timestamp: new Date().toISOString(),
+    recordedBy: "ai-system",
+    recordedAt: new Date().toISOString(),
     data: {
       topVendorId: input.topVendorId,
       topVendorName: input.topVendorName,
@@ -154,7 +156,8 @@ export async function recordHumanDecision(
   const payload: HcsEventPayload = {
     eventType: "HUMAN_DECISION_RECORDED",
     tenderId: input.tenderId,
-    timestamp: new Date().toISOString(),
+    recordedBy: input.reviewerName ?? "Procurement Officer",
+    recordedAt: new Date().toISOString(),
     data: {
       selectedVendorId: input.selectedVendorId,
       selectedVendorName: input.selectedVendorName,
@@ -196,7 +199,8 @@ export async function recordDecisionFinalized(
   const payload: HcsEventPayload = {
     eventType: "DECISION_FINALIZED",
     tenderId: input.tenderId,
-    timestamp: new Date().toISOString(),
+    recordedBy: input.reviewerName ?? "Procurement Officer",
+    recordedAt: new Date().toISOString(),
     data: {
       reviewerName: input.reviewerName,
       reviewerRole: input.reviewerRole ?? null,

@@ -365,7 +365,7 @@ function buildFallbackResult(
 
   const topVendor = vendors.find((v) => v.id === ranking[0]?.vendorId);
   const whyTopVendorWon = topVendor
-    ? `${topVendor.companyName} achieved the highest composite score (${scoring[0]?.totalScore}/100) by performing consistently across the most heavily weighted criteria. ${topVendor.complianceStatus === "FULL" ? "Full compliance status eliminates regulatory risk. " : ""}Price of $${topVendor.price.toLocaleString()} ${topVendor.price < avgPrice ? "is below the field average, adding value competitiveness." : "is above average but justified by capability scores."}`
+    ? `${topVendor.companyName} achieved the highest composite score (${ranking[0]?.totalScore}/100) by performing consistently across the most heavily weighted criteria. ${topVendor.complianceStatus === "FULL" ? "Full compliance status eliminates regulatory risk. " : ""}Price of $${topVendor.price.toLocaleString()} ${topVendor.price < avgPrice ? "is below the field average, adding value competitiveness." : "is above average but justified by capability scores."}`
     : "Top vendor selected based on highest composite weighted score.";
 
   return {

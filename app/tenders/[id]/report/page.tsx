@@ -34,7 +34,7 @@ export default async function ReportPage({
   const weights = tender.criteriaWeights as unknown as CriteriaWeights;
   const ranking = (tender.evaluation?.ranking ?? []) as unknown as VendorRankEntry[];
   const redFlags = (tender.evaluation?.redFlags ?? []) as unknown as RedFlag[];
-  const vendorInsights = (tender.evaluation?.vendorInsights ?? {}) as Record<string, VendorInsight>;
+  const vendorInsights = (tender.evaluation?.vendorInsights ?? {}) as unknown as Record<string, VendorInsight>;
   const rankMap = new Map(ranking.map((r) => [r.vendorId, r]));
 
   const isFinalized = tender.status === "FINALIZED";
@@ -399,7 +399,7 @@ export default async function ReportPage({
               <section className="report-section">
                 <SectionTitle number="4" title="AI Evaluation Summary" icon={Zap} />
 
-                {(tender.evaluation as Record<string, unknown>).whyTopVendorWon && (
+                {!!(tender.evaluation as Record<string, unknown>).whyTopVendorWon && (
                   <div className="mb-4 p-4 bg-purple-50 rounded-xl border border-purple-200">
                     <div className="flex items-start gap-2">
                       <Target className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />

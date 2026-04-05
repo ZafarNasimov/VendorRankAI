@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm tsc:*)",
+      "Bash(ls node_modules/html2canvas/dist/*.d.ts)",
+      "Bash(ls node_modules/jspdf/dist/*.d.ts)"
+    ]
+  }
+}

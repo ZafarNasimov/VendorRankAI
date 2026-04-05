@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { recordDecisionSchema } from "@/validators/decisionSchema";
 import { hashDecision } from "@/services/hashingService";
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
       overrideUsed,
       overrideReason: overrideReason ?? null,
       overrideRiskLevel: overrideRiskLevel ?? null,
-      overrideRiskReasons: overrideRiskReasons ?? null,
+      overrideRiskReasons: overrideRiskReasons ?? Prisma.JsonNull,
       scoreGap: scoreGap ?? null,
       complianceGapSummary: complianceGapSummary ?? null,
       decisionHash,
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
       overrideUsed,
       overrideReason: overrideReason ?? null,
       overrideRiskLevel: overrideRiskLevel ?? null,
-      overrideRiskReasons: overrideRiskReasons ?? null,
+      overrideRiskReasons: overrideRiskReasons ?? Prisma.JsonNull,
       scoreGap: scoreGap ?? null,
       complianceGapSummary: complianceGapSummary ?? null,
       decisionHash,
