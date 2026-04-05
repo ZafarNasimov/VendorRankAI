@@ -1,0 +1,122 @@
+VENDOR PROPOSAL SUBMISSION
+Cybersecurity & SOC Services — RFT Reference: MOF-2025-119
+Submitted to: Ministry of Finance — IT Governance Division
+
+========================================================
+SECTION A: COMPANY INFORMATION
+========================================================
+
+Company Name: ShieldOps Security Group Pte. Ltd.
+Registration Number: SGX-2015-30047
+Country: Singapore
+Registered Address: 80 Robinson Road, #12-01, Singapore 068898
+Tax ID / GST Number: 201530047K
+
+Contact Person: Daniel Koh (VP, Government & Enterprise Sales)
+Email: d.koh@shieldops.sg
+Phone: +65 6321 7800
+
+========================================================
+SECTION B: COMMERCIAL PROPOSAL
+========================================================
+
+Total Contract Price: USD 412,000
+Payment Terms: Quarterly in advance; first payment due within 14 days of contract signature
+Discount Terms: 7% discount for 2-year contract extension exercised within 30 days of go-live
+Offer Validity: 60 days from submission date
+
+Price Breakdown:
+  - SOC setup, tuning, and onboarding:           USD 68,000
+  - Year 1 managed SOC operations (24/7):        USD 180,000
+  - Threat intelligence feed subscription:       USD 44,000
+  - Incident response retainer (20 hours/month): USD 72,000
+  - Compliance reporting and audit support:      USD 30,000
+  - Contingency (4%):                            USD 18,000
+
+========================================================
+SECTION C: DELIVERY AND TIMELINE
+========================================================
+
+Proposed Delivery Timeline: 45 days from contract signature to full SOC operational status
+
+Milestone Schedule:
+  Week 1-2:   Kick-off, asset discovery, and SIEM connector deployment
+  Week 3-4:   Detection rule tuning and playbook configuration
+  Week 5-6:   Tabletop exercises and analyst handover
+  Day 45:     Full 24/7 SOC monitoring commences
+  Month 2+:   Monthly threat intelligence briefings and quarterly QBRs
+
+========================================================
+SECTION D: COMPANY EXPERIENCE AND TRACK RECORD
+========================================================
+
+Years in Business: 10 years (founded 2015)
+
+Similar Projects Completed: 9 managed SOC and cybersecurity operations contracts with government ministries and financial institutions:
+  - Monetary Authority of Singapore — SOC operations (2022–present) — SGD 2.1M contract
+  - Malaysian Ministry of Finance — Threat monitoring & IR retainer (2023) — USD 390K contract
+  - Bank of Thailand — SIEM deployment and managed detection (2024) — USD 520K contract
+
+Proposed Team Size: 11 people assigned to this engagement
+  - 1 Engagement Manager (CISM certified)
+  - 2 Senior SOC Analysts (Tier 3, GCIA certified)
+  - 4 SOC Analysts (Tier 1/2, CompTIA Security+)
+  - 2 Threat Intelligence Analysts
+  - 1 Incident Response Lead (GCIH certified)
+  - 1 Compliance Reporting Specialist
+
+Key Personnel:
+  - Priya Nair, SOC Director — CISM, 14 years cybersecurity, ex-INTERPOL Digital Crime Unit
+  - Wei Zhang, Lead Threat Intelligence Analyst — GCTI, published researcher, 8 years APT tracking
+  - Rajan Subramaniam, IR Lead — GCIH, former MAS CERT incident coordinator
+
+Reference Clients (available on request):
+  - Monetary Authority of Singapore
+  - Bank of Thailand
+  - Malaysian Ministry of Finance
+
+========================================================
+SECTION E: COMPLIANCE AND CERTIFICATIONS
+========================================================
+
+ISO 27001:2022 — FULL CERTIFICATION (Certificate No. TUV-ISO27001-88231, valid through Sep 2026)
+SOC 2 Type II — FULL CERTIFICATION (most recent audit: January 2025, no material findings)
+PCI DSS Level 1 Service Provider — Certified (QSA: Ernst & Young, 2024)
+CSA STAR Level 2 — Certified (2024)
+MAS TRM Guidelines — Full compliance assessed and documented
+
+Sanctions Declaration: ShieldOps Security Group and all named key personnel are clear of sanctions under Singapore, US, EU, and UN frameworks.
+Conflict of Interest Declaration: No conflicts identified. Signed declaration enclosed.
+Insurance: Professional Indemnity USD 8M; Cyber Liability USD 5M; Public Liability USD 10M.
+Financial Statements: Audited accounts available for FY2022, FY2023, FY2024 upon request.
+
+Bid Bond: Bid bond equivalent to 2% of contract value can be issued within 3 business days.
+Performance Guarantee: Agree to 10% performance guarantee with quarterly performance reviews.
+
+========================================================
+SECTION F: TECHNICAL PROPOSAL
+========================================================
+
+Meets Technical Requirements: YES — full compliance with all items in the RFT technical annex.
+
+Technical Architecture:
+  - SIEM platform: Microsoft Sentinel (primary) with Elastic SIEM for log aggregation
+  - Threat intelligence: Recorded Future + proprietary APAC threat feed
+  - SOAR automation: Palo Alto XSOAR for tier-1 alert triage automation
+  - Dedicated tenant isolation — Ministry data never co-mingled with other clients
+  - All data stored in Singapore sovereign cloud (Azure Singapore Region)
+
+Support and Warranty:
+  - 24/7/365 SOC with analyst response within 15 minutes for Priority-1 alerts
+  - Escalation path to senior analyst within 30 minutes
+  - Monthly executive threat summary reports included
+  - On-site IR deployment within 4 hours for declared incidents (Singapore)
+
+Risk Management:
+  Primary risk: alert fatigue from noisy legacy systems. Mitigated by dedicated tuning sprint in weeks 3-4 and ongoing weekly rule-review cadence. SLA credits apply if false-positive rate exceeds 5% per monthly review.
+
+========================================================
+EXECUTIVE SUMMARY
+========================================================
+
+ShieldOps Security Group offers the Ministry of Finance a proven, regionally focused managed SOC capability at USD 412,000 — built on 10 years of APAC government cybersecurity delivery. Our team includes former national CERT and law enforcement personnel, and we operate dedicated SOC infrastructure within Singapore's sovereign cloud boundary. We are fully ISO 27001, SOC 2 Type II, and PCI DSS Level 1 certified, with no material audit findings in 3 consecutive years. We can achieve full operational status within 45 days and are committed to maintaining sub-15-minute P1 response times throughout the contract.

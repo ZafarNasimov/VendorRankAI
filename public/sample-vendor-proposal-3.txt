@@ -1,0 +1,134 @@
+VENDOR PROPOSAL SUBMISSION
+Enterprise Software Development & System Integration — RFT Reference: MHW-2025-207
+Submitted to: Ministry of Health & Welfare — Digital Transformation Office
+
+========================================================
+SECTION A: COMPANY INFORMATION
+========================================================
+
+Company Name: Veritas Digital Solutions GmbH
+Registration Number: HRB-2019-448821
+Country: Germany
+Registered Address: Unter den Linden 21, 10117 Berlin, Germany
+Tax ID / VAT Number: DE-312-447-891
+
+Contact Person: Sabine Müller (Director, Public Sector EMEA)
+Email: s.mueller@veritas-digital.de
+Phone: +49 30 2092 5500
+
+========================================================
+SECTION B: COMMERCIAL PROPOSAL
+========================================================
+
+Total Contract Price: USD 540,000
+Payment Terms: Net-45 milestone billing; invoices raised on completion of each project phase
+Discount Terms: Volume discount of 8% applicable if scope is extended by Phase 3 within 6 months
+Offer Validity: 75 days from submission date
+
+Price Breakdown:
+  - Discovery, requirements analysis, and architecture:   USD 55,000
+  - Custom software development (Phases 1 & 2):          USD 245,000
+  - Systems integration (EHR, legacy HMIS, APIs):        USD 95,000
+  - Testing, QA, and security audit:                     USD 60,000
+  - Deployment, training, and go-live support:           USD 50,000
+  - 12-month post-launch support and SLA coverage:       USD 60,000
+  - Contingency (5%):                                    USD 27,000 (rounded)
+
+Note: The above excludes third-party licensing (cloud hosting, EHR vendor API fees) — estimated USD 28,000/year, billed at cost.
+
+========================================================
+SECTION C: DELIVERY AND TIMELINE
+========================================================
+
+Proposed Delivery Timeline: 9 months from contract signature to production go-live
+
+Milestone Schedule:
+  Month 1:     Discovery workshop, requirements sign-off, architecture design
+  Month 2-3:   Phase 1 development — core patient management module
+  Month 4-5:   Phase 2 development — reporting, analytics, workflow automation
+  Month 6:     Integration sprint — EHR and legacy HMIS connectors
+  Month 7:     User acceptance testing and security audit
+  Month 8:     Performance optimisation, staff training, data migration
+  Month 9:     Go-live and 30-day hypercare support
+  Month 10-21: 12-month SLA support period commences
+
+========================================================
+SECTION D: COMPANY EXPERIENCE AND TRACK RECORD
+========================================================
+
+Years in Business: 6 years (founded 2019)
+
+Similar Projects Completed: 7 healthcare and social services digital transformation projects:
+  - Federal Ministry of Health (Germany) — Patient portal modernisation (2023) — EUR 820K
+  - Austrian Social Insurance Fund — Claims processing automation (2022) — EUR 610K
+  - City of Zurich — Social welfare case management system (2024) — CHF 490K
+
+Proposed Team Size: 16 people assigned to this engagement
+  - 1 Project Director (PMP, Scrum Master certified)
+  - 1 Business Analyst (CBAP)
+  - 3 Senior Full-Stack Developers (React / Node.js / PostgreSQL)
+  - 2 Backend Engineers (Java / Spring Boot)
+  - 2 Integration Engineers (HL7 FHIR, REST/SOAP)
+  - 2 QA Engineers (ISTQB certified)
+  - 1 UX/UI Designer
+  - 1 DevOps / Infrastructure Engineer
+  - 1 Data Migration Specialist
+  - 1 Security Architect (CISSP)
+  - 1 Functional Trainer
+
+Key Personnel:
+  - Klaus Bauer, Project Director — PMP, 16 years healthcare IT delivery, former SAP Health partner lead
+  - Anya Kowalski, Lead Architect — HL7 FHIR certified, architect of 3 national health information platforms
+  - Fatima Al-Rashid, Security Architect — CISSP, GDPR DPO, specialist in health data privacy frameworks
+
+Reference Clients (available on request):
+  - Federal Ministry of Health, Germany
+  - Austrian Social Insurance Fund (OEGK)
+  - City of Zurich Social Services Department
+
+========================================================
+SECTION E: COMPLIANCE AND CERTIFICATIONS
+========================================================
+
+ISO 27001:2022 — FULL CERTIFICATION (Certificate No. DIN-ISO27001-77234, valid through June 2026)
+ISO 9001:2015 — Quality Management (Certificate No. DIN-ISO9001-12984, valid through June 2026)
+SOC 2 Type II — FULL CERTIFICATION (most recent audit: November 2024, no material findings)
+GDPR — Full compliance; appointed Data Protection Officer on staff; DPIA templates provided
+HL7 FHIR R4 — Development team certified via HL7 International training programme
+
+Sanctions Declaration: Veritas Digital Solutions GmbH and all named personnel are clear of sanctions under EU, US, and UN frameworks.
+Conflict of Interest Declaration: No conflicts identified. Signed declaration enclosed.
+Insurance: Professional Indemnity EUR 5M; Product Liability EUR 3M; Cyber Insurance EUR 4M.
+Financial Statements: Audited accounts for FY2022, FY2023, FY2024 available upon request.
+
+Bid Bond: Bid bond equivalent to 2% of contract value available within 5 business days.
+Performance Guarantee: Agree to 10% performance guarantee clause with milestone-based release.
+
+========================================================
+SECTION F: TECHNICAL PROPOSAL
+========================================================
+
+Meets Technical Requirements: YES — full compliance confirmed against all items in RFT Technical Annex B.
+
+Technical Architecture:
+  - Frontend: React 18 + TypeScript, WCAG 2.1 AA accessible UI components
+  - Backend: Node.js microservices (health records) + Java Spring Boot (workflow engine)
+  - Database: PostgreSQL 16 (primary), Redis (caching), Elasticsearch (audit logs/search)
+  - Integration: HL7 FHIR R4 APIs, legacy HMIS adapters via MuleSoft ESB
+  - Infrastructure: Kubernetes on AWS EU (Frankfurt) with GDPR-compliant data residency
+  - Security: OAuth 2.0 / OpenID Connect, role-based access, end-to-end encryption, penetration tested annually
+
+Support and Warranty:
+  - 12-month post-go-live support: response SLA — P1: 4 hours, P2: 8 hours, P3: 48 hours
+  - Monthly service reviews and quarterly roadmap consultations included
+  - Bug fixes and security patches included at no additional cost during support period
+  - 99.5% uptime SLA with defined credit schedule for downtime breach
+
+Risk Management:
+  Top identified risk: Legacy HMIS data quality issues causing integration delays. Mitigated by dedicated data profiling sprint in Month 1 and agreed data cleansing protocol. Contingency budget of USD 27,000 provides buffer for scope creep in integration phase.
+
+========================================================
+EXECUTIVE SUMMARY
+========================================================
+
+Veritas Digital Solutions proposes a complete, standards-compliant digital health platform for the Ministry of Health & Welfare at USD 540,000 over 9 months. Our team brings deep HL7 FHIR expertise, proven delivery on 7 comparable government healthcare projects, and full GDPR and ISO 27001 certification. We use modern, open-standard architecture with no proprietary lock-in, and all data remains within EU-sovereign infrastructure. Our fixed milestone pricing provides full budget certainty, and our 12-month post-launch support SLA guarantees continuity well beyond go-live.

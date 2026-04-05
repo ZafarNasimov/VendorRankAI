@@ -1,0 +1,131 @@
+VENDOR PROPOSAL SUBMISSION
+Facilities Management & Infrastructure Maintenance — RFT Reference: PWD-2025-334
+Submitted to: Public Works Department — Asset Management Division
+
+========================================================
+SECTION A: COMPANY INFORMATION
+========================================================
+
+Company Name: Meridian Facilities Group Inc.
+Registration Number: MFG-2009-CA-110247
+Country: Canada
+Registered Address: 200 Bay Street, Suite 2900, Toronto, ON M5J 2J2, Canada
+Tax ID / HST Number: 82-7741-3304-RT0001
+
+Contact Person: Robert Achebe (Senior Director, Government Contracts)
+Email: r.achebe@meridianfacilities.ca
+Phone: +1 416 863 4400
+
+========================================================
+SECTION B: COMMERCIAL PROPOSAL
+========================================================
+
+Total Contract Price: USD 1,180,000 (3-year base contract; 2 x 1-year extension options available)
+Payment Terms: Monthly fixed-fee invoicing; due Net-30 from invoice date
+Discount Terms: 4% reduction on extension years if exercised 90 days before contract expiry
+Offer Validity: 90 days from submission date
+
+Price Breakdown (3-year total):
+  - Planned preventive maintenance (all assets):   USD 480,000
+  - Reactive maintenance and emergency callouts:   USD 210,000 (capped pool)
+  - Grounds and exterior maintenance:              USD 165,000
+  - Cleaning and janitorial services:              USD 195,000
+  - Energy monitoring and reporting:               USD 60,000
+  - Contract management and helpdesk:              USD 45,000
+  - Contingency (3%):                              USD 25,000 (rounded)
+
+Annual Equivalent: USD ~393,300/year
+
+========================================================
+SECTION C: DELIVERY AND TIMELINE
+========================================================
+
+Proposed Service Commencement: 30 days from contract signature (full mobilisation)
+
+Mobilisation Schedule:
+  Week 1:    Contract finalisation, key personnel introductions, site induction
+  Week 2:    Asset register audit and CAFM system population
+  Week 3:    Planned maintenance schedule agreed and published
+  Week 4:    Full service operations commence (cleaning Day 1, maintenance Day 7)
+  Month 2+:  Monthly KPI reporting, quarterly management reviews, annual audits
+
+========================================================
+SECTION D: COMPANY EXPERIENCE AND TRACK RECORD
+========================================================
+
+Years in Business: 16 years (founded 2009)
+
+Similar Projects Completed: 18 government and public-sector facilities management contracts across Canada and the US:
+  - Ontario Government — Multi-site FM contract, 42 buildings (2021–2024) — CAD 6.2M
+  - City of Vancouver — Civic facilities maintenance (2022–present) — CAD 2.8M
+  - Public Services and Procurement Canada — Federal office portfolio FM (2023) — CAD 4.1M
+
+Proposed Team Size: 22 dedicated staff for this contract
+  - 1 Contract Director
+  - 1 Site Facilities Manager (IFMA CFM certified)
+  - 4 Mechanical & Electrical Engineers/Technicians
+  - 3 Building Services Technicians
+  - 6 Cleaning Operatives (supervised)
+  - 2 Grounds Maintenance Operatives
+  - 2 Helpdesk and Scheduling Coordinators
+  - 1 Energy & Sustainability Analyst
+  - 1 Health & Safety Officer (NEBOSH)
+  - 2 Relief/Float Staff (sickness/leave cover)
+
+Key Personnel:
+  - Grace Okonkwo, Contract Director — IFMA Fellow, 18 years public sector FM, managed portfolios up to 80 buildings
+  - Tomás Herrera, Chief Engineer — P.Eng, LEED AP, specialist in HVAC and critical systems maintenance
+  - Linda Park, H&S Officer — NEBOSH General Certificate, zero recordable incidents across last 3 contracts
+
+Reference Clients (available on request):
+  - Infrastructure Ontario
+  - City of Vancouver, Facilities Management Division
+  - Public Services and Procurement Canada (PSPC)
+
+========================================================
+SECTION E: COMPLIANCE AND CERTIFICATIONS
+========================================================
+
+ISO 9001:2015 — Quality Management (Certificate No. BV-ISO9001-33017, valid through March 2027)
+ISO 45001:2018 — Occupational Health & Safety (Certificate No. BV-ISO45001-33018, valid through March 2027)
+ISO 14001:2015 — Environmental Management (Certificate No. BV-ISO14001-33019, valid through March 2027)
+CPTED Compliance — Crime Prevention Through Environmental Design protocols applied on all sites
+WSIB / WCB — Active clearance certificates for all provinces of operation
+Living Wage Employer — Certified by the Living Wage Canada network (2024)
+
+Sanctions Declaration: Meridian Facilities Group Inc. and all named personnel are clear of sanctions under Canadian, US, and UN frameworks.
+Conflict of Interest Declaration: No conflicts identified. Signed declaration enclosed.
+Insurance: Commercial General Liability CAD 10M; Professional Errors & Omissions CAD 5M; Workers' Compensation — current and active.
+Financial Statements: Audited accounts for FY2022, FY2023, FY2024 available upon request.
+
+Bid Bond: Bid bond equivalent to 2% of annual contract value available within 5 business days.
+Performance Guarantee: Agree to performance bond equivalent to 10% of annual contract value.
+
+========================================================
+SECTION F: TECHNICAL PROPOSAL
+========================================================
+
+Meets Technical Requirements: YES — full compliance with all service specifications in the RFT Schedule of Services.
+
+Service Delivery Approach:
+  - CAFM system: IBM Maximo (hosted, client-accessible portal for real-time work order tracking)
+  - Planned maintenance: BS EN 13306-aligned schedules; all assets on PPM register within 14 days of mobilisation
+  - Emergency response: 2-hour response for P1 incidents (life safety/critical systems); 24/7 helpdesk
+  - Cleaning: ISSA CIMS-certified standards; eco-certified products (EcoLogo / Green Seal)
+  - Energy: Monthly consumption dashboards; carbon reporting aligned to GHG Protocol Scope 1/2
+  - Sub-contractors: All sub-contractors pre-vetted, DBS/security checked, and approved by Meridian before deployment
+
+Support and SLA Commitments:
+  - P1 (life safety / critical failure): on-site response within 2 hours, 24/7/365
+  - P2 (non-critical building services): 8 business hours
+  - P3 (cosmetic / planned): scheduled within 5 business days
+  - SLA performance reported monthly; credits apply for breach as defined in Schedule 4
+
+Risk Management:
+  Top identified risk: Ageing mechanical plant increasing reactive maintenance demand. Mitigated by comprehensive condition survey in Month 1, risk-prioritised PPM escalation for assets rated 'poor' condition, and capped reactive pool with transparent drawdown reporting.
+
+========================================================
+EXECUTIVE SUMMARY
+========================================================
+
+Meridian Facilities Group offers the Public Works Department a fully integrated, ISO-certified facilities management service covering planned maintenance, reactive response, cleaning, grounds, and energy management for USD 1,180,000 over 3 years (USD ~393K/year). We bring 16 years of government FM delivery, zero recordable safety incidents across our last 3 major contracts, and a technology-enabled, transparent service model using IBM Maximo CAFM. Our 22-person dedicated team will be operational within 30 days, and our capped reactive maintenance pool provides full budget certainty for the contract period.
